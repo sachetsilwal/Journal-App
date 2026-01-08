@@ -1,0 +1,93 @@
+@page "/settings"
+@inject Journal.Services.Abstractions.IPinService PinService
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-6 glass fade-in">
+    <MudText Typo="Typo.h4">⚙️ Settings</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-4">Security and preferences.</MudText>
+
+    <MudCard Class="card-pop">
+        <MudCardContent>
+            <MudText Typo="Typo.h6">🔒 PIN Protection</MudText>
+
+            <MudText Typo="Typo.caption" Class="mb-2">
+                Status: @(PinService.HasPin() ? "Enabled" : "Disabled")
+            </MudText>
+
+            <MudTextField @bind-Value="_newPin" Label="New PIN" InputType="InputType.Password"
+                Variant="Variant.Outlined" Dense="true" />
+
+            <MudTextField @bind-Value="_confirmPin" Label="Confirm PIN" InputType="InputType.Password"
+                Variant="Variant.Outlined" Dense="true" Class="mt-3" />
+
+            <MudStack Row="true" Spacing="2" Class="mt-4">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SavePin">
+                    Save PIN
+                </MudButton>
+
+                <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@(!PinService.HasPin())"
+                    OnClick="ClearPin">
+                    Clear PIN
+                </MudButton>
+            </MudStack>
+        </MudCardContent>
+    </MudCard>
+</MudPaper>
+
+<style>
+    .glass {
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    .fade-in {
+        animation: fadeUp .45s ease-out;
+    }
+
+    @@keyframes
+    fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .card-pop {
+        border-radius: 16px;
+    }
+</style>
+
+@code {
+    private string _newPin = "";
+    private string _confirmPin = "";
+
+    private void SavePin()
+    {
+        if (string.IsNullOrWhiteSpace(_newPin) || _newPin.Length < 4)
+        {
+            Snackbar.Add("PIN must be at least 4 digits.", Severity.Warning);
+            return;
+        }
+
+        if (_newPin != _confirmPin)
+        {
+            Snackbar.Add("PIN does not match confirmation.", Severity.Error);
+            return;
+        }
+
+        PinService.SetPin(_newPin);
+        _newPin = _confirmPin = "";
+        Snackbar.Add("PIN saved successfully ✅", Severity.Success);
+    }
+
+    private void ClearPin()
+    {
+        PinService.ClearPin();
+        Snackbar.Add("PIN removed.", Severity.Info);
+    }
+}

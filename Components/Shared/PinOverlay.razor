@@ -1,0 +1,70 @@
+@inject Journal.Services.Abstractions.IPinService PinService
+
+@if (_locked)
+{
+    <div class="pin-overlay">
+        <MudPaper Class="pa-6 pin-card">
+            <MudText Typo="Typo.h5">🔒 Journal Locked</MudText>
+            <MudText Typo="Typo.subtitle2" Class="mb-3">
+                Enter PIN to access your journal.
+            </MudText>
+
+            <MudTextField @bind-Value="_pin" Label="PIN" InputType="InputType.Password" Variant="Variant.Outlined"
+                Dense="true" />
+
+            <MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="Unlock">
+                Unlock
+            </MudButton>
+
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <MudAlert Severity="Severity.Error" Class="mt-3">@_error</MudAlert>
+            }
+        </MudPaper>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback<bool> LockedChanged { get; set; }
+
+    private bool _locked;
+    private string _pin = "";
+    private string _error = "";
+
+    protected override void OnInitialized()
+    {
+        _locked = PinService.HasPin();
+    }
+
+    private async Task Unlock()
+    {
+        if (!PinService.Verify(_pin))
+        {
+            _error = "Incorrect PIN.";
+            _pin = "";
+            return;
+        }
+
+        _locked = false;
+        _error = "";
+        _pin = "";
+        await LockedChanged.InvokeAsync(false);
+    }
+}
+
+<style>
+    .pin-overlay {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, .55);
+        z-index: 9999;
+    }
+
+    .pin-card {
+        width: min(420px, 92vw);
+        border-radius: 18px;
+    }
+</style>

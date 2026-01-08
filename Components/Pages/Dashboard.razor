@@ -1,0 +1,59 @@
+﻿@page "/dashboard"
+
+<MudPaper Class="pa-6 glass fade-in">
+    <MudText Typo="Typo.h4">📓 Dashboard</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-4">
+        Mood insights, streak tracking, and writing trends.
+    </MudText>
+
+    <MudGrid Spacing="3">
+        <MudItem xs="12" md="4">
+            <MudCard Class="card-pop">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Current Streak</MudText>
+                    <MudText Typo="Typo.h3">@_currentStreak 🔥</MudText>
+                    <MudText Typo="Typo.caption">
+                        Longest: @_longestStreak • Missed: @_missedDays
+                    </MudText>
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="8">
+            <MudCard Class="card-pop">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Mood Distribution</MudText>
+                    <MudChart ChartType="ChartType.Pie" InputData="@_moodData" InputLabels="@_moodLabels" />
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+
+    <MudDivider Class="my-6" />
+
+    <MudText Typo="Typo.h6">Recent Entries</MudText>
+
+    @if (_recent != null && _recent.Any())
+    {
+        <div class="timeline">
+            @foreach (var item in _recent)
+            {
+                <MudPaper Class="pa-4 mb-3 timeline-item">
+                    <MudText Typo="Typo.subtitle1">
+                        @item.EntryDate.ToString("yyyy-MM-dd") — @item.Title
+                    </MudText>
+                    <MudText Typo="Typo.caption">
+                        Primary: @item.PrimaryMood • Updated:
+                        @item.UpdatedAtUtc.ToLocalTime().ToString("g")
+                    </MudText>
+                </MudPaper>
+            }
+        </div>
+    }
+    else
+    {
+        <MudText Typo="Typo.caption" Class="mt-2">
+            No recent entries available.
+        </MudText>
+    }
+</MudPaper>

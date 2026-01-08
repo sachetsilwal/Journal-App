@@ -1,0 +1,174 @@
+@page "/calendar"
+@inject IJournalService JournalService
+@inject NavigationManager Nav
+
+<MudPaper Class="pa-6 glass fade-in">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+
+        <MudText Typo="Typo.h4">📅 Journal Calendar</MudText>
+
+        <MudStack Row="true" Spacing="1">
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" OnClick="PrevMonth" />
+            <MudText Typo="Typo.h6">@_currentMonth.ToString("MMMM yyyy")</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" OnClick="NextMonth" />
+        </MudStack>
+    </MudStack>
+
+    <MudDivider Class="my-4" />
+
+    <!-- Week Headers -->
+    <MudGrid Class="calendar-grid calendar-header">
+        @foreach (var d in _weekDays)
+        {
+            <MudItem xs="12" sm="1">@d</MudItem>
+        }
+    </MudGrid>
+
+    <!-- Calendar Days -->
+    <MudGrid Class="calendar-grid">
+        @foreach (var cell in _cells)
+        {
+            <MudItem xs="12" sm="1">
+                @if (cell == null)
+                {
+                    <div class="empty-cell"></div>
+                }
+                else
+                {
+                    var hasEntry = _entryDays.Contains(cell.Value.Day);
+                    var cellClass = hasEntry ? "calendar-cell has-entry" : "calendar-cell";
+                    <MudPaper Class="@cellClass" OnClick="@(() => OnDayClicked(cell.Value))" Elevation="@(hasEntry ? 4 : 1)">
+                        Elevation="@(hasEntry ? 4 : 1)">
+                        <MudText Typo="Typo.subtitle2">@cell.Value.Day</MudText>
+
+                        @if (hasEntry)
+                        {
+                            <MudIcon Icon="@Icons.Material.Filled.Book" Color="Color.Primary" Size="Size.Small" />
+                        }
+                    </MudPaper>
+                }
+            </MudItem>
+        }
+    </MudGrid>
+</MudPaper>
+
+<style>
+    .glass {
+        border-radius: 16px;
+        backdrop-filter: blur(10px);
+    }
+
+    .fade-in {
+        animation: fadeUp .45s ease-out;
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px;
+    }
+
+    .calendar-header {
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .calendar-cell {
+        height: 90px;
+        padding: 8px;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .calendar-cell:hover {
+        transform: translateY(-3px);
+    }
+
+    .has-entry {
+        background: linear-gradient(135deg, rgba(63, 81, 181, .18), rgba(3, 169, 244, .18));
+    }
+
+    .empty-cell {
+        height: 90px;
+    }
+
+    @@keyframes
+    fadeUp {
+        from {
+            opacity: 0;
+            transform: translateY(14px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+@code {
+    private DateTime _currentMonth = DateTime.Today;
+    private HashSet<int> _entryDays = new();
+    private List<DateTime?> _cells = new();
+
+    private readonly string[] _weekDays =
+    { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadMonth();
+    }
+
+    private async Task LoadMonth()
+    {
+        _entryDays.Clear();
+
+        var entries = await JournalService.GetMonthAsync(
+        _currentMonth.Year,
+        _currentMonth.Month);
+
+        foreach (var e in entries)
+            _entryDays.Add(e.EntryDate.Day);
+
+        BuildCalendarCells();
+    }
+
+    private void BuildCalendarCells()
+    {
+        _cells.Clear();
+
+        var firstDay = new DateTime(_currentMonth.Year, _currentMonth.Month, 1);
+        var daysInMonth = DateTime.DaysInMonth(_currentMonth.Year, _currentMonth.Month);
+
+        // Empty cells before first day
+        for (int i = 0; i < (int)firstDay.DayOfWeek; i++)
+            _cells.Add(null);
+
+        // Actual days
+        for (int day = 1; day <= daysInMonth; day++)
+            _cells.Add(new DateTime(_currentMonth.Year, _currentMonth.Month, day));
+    }
+
+    private async Task PrevMonth()
+    {
+        _currentMonth = _currentMonth.AddMonths(-1);
+        await LoadMonth();
+    }
+
+    private async Task NextMonth()
+    {
+        _currentMonth = _currentMonth.AddMonths(1);
+        await LoadMonth();
+    }
+
+    private void OnDayClicked(DateTime date)
+    {
+        // Navigate to Today Entry page
+        // Rule: only one entry per day, so this is safe
+        if (date.Date == DateTime.Today)
+            Nav.NavigateTo("/entry");
+        else
+            Nav.NavigateTo($"/timeline?date={date:yyyy-MM-dd}");
+    }
+}

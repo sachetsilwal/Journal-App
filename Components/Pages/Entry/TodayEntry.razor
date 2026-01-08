@@ -1,0 +1,209 @@
+@page "/entry"
+@inject IJournalService JournalService
+@inject ISnackbar Snackbar
+
+<MudPaper Class="pa-6 glass fade-in">
+    <MudText Typo="Typo.h4">✍️ Today’s Entry</MudText>
+    <MudText Typo="Typo.subtitle2" Class="mb-4">
+        One entry per day • Markdown supported • Auto timestamps
+    </MudText>
+
+    @if (_loading)
+    {
+        <MudProgressCircular Indeterminate="true" />
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="6">
+                <MudTextField @bind-Value="_model.Title"
+                              Label="Title"
+                              Variant="Variant.Outlined"
+                              Dense="true" />
+
+                <MudTextField @bind-Value="_model.TagsCsv"
+                              Label="Tags (comma separated)"
+                              Variant="Variant.Outlined"
+                              Dense="true"
+                              Class="mt-3" />
+
+                <MudTextField @bind-Value="_model.Category"
+                              Label="Category"
+                              Variant="Variant.Outlined"
+                              Dense="true"
+                              Class="mt-3" />
+
+                <MoodSelector Primary="@_model.PrimaryMood"
+                              PrimaryChanged="OnPrimaryChanged"
+                              SecondaryMoods="@_secondary"
+                              SecondaryMoodsChanged="OnSecondaryChanged"
+                              Class="mt-3" />
+
+                <MudStack Row="true" Spacing="2" Class="mt-4">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync">
+                        Save
+                    </MudButton>
+
+                    <MudButton Variant="Variant.Outlined" Color="Color.Error" Disabled="@(!_exists)" OnClick="DeleteAsync">
+                        Delete Today
+                    </MudButton>
+
+                    <MudSpacer />
+
+                    <MudText Typo="Typo.caption">
+                        Created: @_createdText • Updated: @_updatedText
+                    </MudText>
+                </MudStack>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudText Typo="Typo.h6" Class="mb-2">Markdown Editor</MudText>
+
+                <MudTextField @bind-Value="_model.ContentMarkdown"
+                              Lines="14"
+                              Variant="Variant.Outlined"
+                              Placeholder="Write in Markdown..."
+                              Immediate="true"
+                              OnBlur="OnMarkdownChanged" />
+
+                <MudDivider Class="my-4" />
+
+                <MudText Typo="Typo.h6">Live Preview</MudText>
+                <MudPaper Class="pa-4 preview">
+                    <div class="md" @key="_previewKey">
+                        @((MarkupString)_previewHtml)
+                    </div>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+    }
+</MudPaper>
+
+<style>
+.glass{ border-radius:16px; backdrop-filter: blur(10px); }
+.fade-in{ animation: fadeUp .45s ease-out; }
+@@keyframes fadeUp{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+.preview{ border-radius:16px; }
+.md h1,.md h2,.md h3{ margin-top: 12px; }
+.md code{ padding:2px 6px; border-radius:8px; }
+</style>
+
+@code {
+    private bool _loading = true;
+    private bool _exists;
+    private string _previewHtml = "";
+    private Guid _previewKey = Guid.NewGuid();
+
+    private Journal.Models.JournalEntry _model = new()
+    {
+        EntryDate = DateOnly.FromDateTime(DateTime.Today),
+        PrimaryMood = Journal.Models.Mood.Calm
+    };
+
+    private List<Journal.Models.Mood> _secondary = new();
+
+    private string _createdText = "-";
+    private string _updatedText = "-";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var existing = await JournalService.GetEntryAsync(today);
+        if (existing is not null)
+        {
+            _model = existing;
+            _exists = true;
+
+            _secondary = new List<Journal.Models.Mood>();
+            if (existing.SecondaryMood1 is not null) _secondary.Add(existing.SecondaryMood1.Value);
+            if (existing.SecondaryMood2 is not null) _secondary.Add(existing.SecondaryMood2.Value);
+
+            _createdText = existing.CreatedAtUtc.ToLocalTime().ToString("g");
+            _updatedText = existing.UpdatedAtUtc.ToLocalTime().ToString("g");
+        }
+
+        RenderPreview();
+        _loading = false;
+    }
+
+    private Task OnPrimaryChanged(Journal.Models.Mood mood)
+    {
+        _model.PrimaryMood = mood;
+        // ensure primary not in secondary
+        _secondary = _secondary.Where(x => x != _model.PrimaryMood).ToList();
+        ApplySecondaryToModel();
+        return Task.CompletedTask;
+    }
+
+    private Task OnSecondaryChanged(List<Journal.Models.Mood> moods)
+    {
+        // hard rule enforcement: max 2 and not equal primary
+        _secondary = moods.Where(x => x != _model.PrimaryMood).Distinct().Take(2).ToList();
+        ApplySecondaryToModel();
+        return Task.CompletedTask;
+    }
+
+    private void ApplySecondaryToModel()
+    {
+        _model.SecondaryMood1 = _secondary.Count > 0 ? _secondary[0] : null;
+        _model.SecondaryMood2 = _secondary.Count > 1 ? _secondary[1] : null;
+    }
+
+    private void OnMarkdownChanged()
+    {
+        RenderPreview();
+    }
+
+    private void RenderPreview()
+    {
+        // Markdig-based HTML preview (Rich text via Markdown)
+        _previewHtml = Markdig.Markdown.ToHtml(_model.ContentMarkdown ?? "");
+        _previewKey = Guid.NewGuid();
+    }
+
+    private async Task SaveAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_model.ContentMarkdown))
+        {
+            Snackbar.Add("Entry content cannot be empty.", Severity.Warning);
+            return;
+        }
+
+        if (_secondary.Count > 2)
+        {
+            Snackbar.Add("You can select at most 2 secondary moods.", Severity.Warning);
+            _secondary = _secondary.Take(2).ToList();
+            ApplySecondaryToModel();
+        }
+
+        await JournalService.UpsertAsync(_model);
+        Snackbar.Add("Saved successfully ✅", Severity.Success);
+
+        var reloaded = await JournalService.GetEntryAsync(_model.EntryDate);
+        if (reloaded is not null)
+        {
+            _exists = true;
+            _createdText = reloaded.CreatedAtUtc.ToLocalTime().ToString("g");
+            _updatedText = reloaded.UpdatedAtUtc.ToLocalTime().ToString("g");
+        }
+    }
+
+    private async Task DeleteAsync()
+    {
+        await JournalService.DeleteAsync(_model.EntryDate);
+        Snackbar.Add("Deleted today’s entry.", Severity.Info);
+
+        _model = new Journal.Models.JournalEntry
+        {
+            EntryDate = DateOnly.FromDateTime(DateTime.Today),
+            PrimaryMood = Journal.Models.Mood.Calm
+        };
+        _secondary.Clear();
+        ApplySecondaryToModel();
+        _exists = false;
+        _createdText = "-";
+        _updatedText = "-";
+        RenderPreview();
+    }
+}

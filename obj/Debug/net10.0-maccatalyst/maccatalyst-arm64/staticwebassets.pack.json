@@ -1,0 +1,53 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/sachetshilwal/.nuget/packages/microsoft.aspnetcore.components.webview/10.0.0/staticwebassets/blazor.modules.json",
+      "PackagePath": "staticwebassets/_framework/blazor.modules.json"
+    },
+    {
+      "Id": "/Users/sachetshilwal/.nuget/packages/microsoft.aspnetcore.components.webview/10.0.0/staticwebassets/blazor.webview.js",
+      "PackagePath": "staticwebassets/_framework/blazor.webview.js"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Documents/Journal/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/scopedcss/bundle/Journal.styles.css",
+      "PackagePath": "staticwebassets/Journal.styles.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/app.css",
+      "PackagePath": "staticwebassets/app.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/index.html",
+      "PackagePath": "staticwebassets/index.html"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css",
+      "PackagePath": "staticwebassets/lib/bootstrap/dist/css/bootstrap.min.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map",
+      "PackagePath": "staticwebassets/lib/bootstrap/dist/css/bootstrap.min.css.map"
+    },
+    {
+      "Id": "obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.Journal.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssetEndpoints.props"
+    },
+    {
+      "Id": "obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.Journal.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.build.Journal.props",
+      "PackagePath": "build\\Journal.props"
+    },
+    {
+      "Id": "obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.buildMultiTargeting.Journal.props",
+      "PackagePath": "buildMultiTargeting\\Journal.props"
+    },
+    {
+      "Id": "obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.buildTransitive.Journal.props",
+      "PackagePath": "buildTransitive\\Journal.props"
+    }
+  ],
+  "ElementsToRemove": []
+}

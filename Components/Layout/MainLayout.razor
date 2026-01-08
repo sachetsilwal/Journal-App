@@ -1,0 +1,76 @@
+﻿@using MudBlazor
+@using MudBlazor.Components
+@namespace Journal.Components.Layout
+@inherits LayoutComponentBase
+
+<PinOverlay LockedChanged="OnLockedChanged" />
+@using Journal.Components.Shared
+
+@code {
+    private Task OnLockedChanged(bool locked) => Task.CompletedTask;
+}
+
+
+<MudThemeProvider @bind-IsDarkMode="_isDark" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudText Typo="Typo.h6">JOURNAL</MudText>
+        <MudSpacer />
+        <MudIconButton Icon="@(_isDark? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
+            OnClick="ToggleTheme" />
+    </MudAppBar>
+
+    <MudDrawer Open="true" Elevation="1">
+        <MudNavMenu>
+            <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard
+            </MudNavLink>
+            <MudNavLink Href="/entry" Icon="@Icons.Material.Filled.EditNote">Today Entry</MudNavLink>
+            <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="pa-4">
+        <ErrorBoundary>
+            <ChildContent>
+                @Body
+            </ChildContent>
+            <ErrorContent Context="ex">
+                <MudPaper Class="pa-6" Style="background:#b91c1c;color:white;">
+                    <MudText Typo="Typo.h5">🚨 Runtime Error</MudText>
+                    <MudText Typo="Typo.subtitle2">@ex.GetType().Name</MudText>
+
+                    <MudDivider Class="my-2" />
+
+                    <MudText Typo="Typo.body2">
+                        @ex.Message
+                    </MudText>
+
+                    @if (ex.StackTrace != null)
+                    {
+                        <pre style="white-space:pre-wrap;font-size:12px;margin-top:12px;">
+        @ex.StackTrace
+                        </pre>
+                    }
+                </MudPaper>
+            </ErrorContent>
+        </ErrorBoundary>
+
+    </MudMainContent>
+</MudLayout>
+<MudNavLink Href="/timeline" Icon="@Icons.Material.Filled.History">
+    Timeline
+</MudNavLink>
+<MudNavLink Href="/calendar" Icon="@Icons.Material.Filled.CalendarMonth">
+    Calendar
+</MudNavLink>
+
+
+@code {
+    private bool _isDark = true;
+
+    private void ToggleTheme() => _isDark = !_isDark;
+}

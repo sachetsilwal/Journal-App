@@ -1,0 +1,93 @@
+@using Journal.Models
+
+<MudPaper Class="pa-4 mood-card">
+    <MudText Typo="Typo.h6" Class="mb-2">🙂 Mood</MudText>
+
+    <MudGrid Spacing="2">
+        <MudItem xs="12" md="6">
+            <MudSelect T="Mood" Label="Primary Mood (Required)"
+                       Dense="true" Variant="Variant.Outlined"
+                       Value="@Primary"
+                       ValueChanged="OnPrimaryChanged">
+                @foreach (var m in _allMoods)
+                {
+                    <MudSelectItem Value="@m">@m</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudText Typo="Typo.subtitle2">Secondary Moods (0–2)</MudText>
+
+            <MudChipSet T="Mood" MultiSelection="true" SelectedChipsChanged="OnSecondaryChipChanged" Class="mt-2">
+
+                @foreach (var m in _allMoods)
+                {
+                    if (m == Primary)
+                    {
+                        continue; // Don't allow same as primary
+                    }
+
+                    <MudChip T="Mood" Value="@m" Disabled="@IsSecondaryDisabled(m)" Color="Color.Default"
+                        Variant="Variant.Outlined">
+                        @m
+                    </MudChip>
+                }
+            </MudChipSet>
+
+
+            <MudText Typo="Typo.caption" Class="mt-2">
+                Selected: @string.Join(", ", SecondaryMoods)
+            </MudText>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@code {
+    [Parameter] public Mood Primary { get; set; } = Mood.Calm;
+    [Parameter] public EventCallback<Mood> PrimaryChanged { get; set; }
+
+    [Parameter] public List<Mood> SecondaryMoods { get; set; } = new();
+    [Parameter] public EventCallback<List<Mood>> SecondaryMoodsChanged { get; set; }
+
+    private readonly List<Mood> _allMoods = Enum.GetValues<Mood>().ToList();
+
+    private async Task OnPrimaryChanged(Mood newPrimary)
+    {
+        Primary = newPrimary;
+
+        // If primary was selected as secondary, remove it
+        SecondaryMoods = SecondaryMoods.Where(x => x != Primary).ToList();
+
+        await PrimaryChanged.InvokeAsync(Primary);
+        await SecondaryMoodsChanged.InvokeAsync(SecondaryMoods);
+    }
+
+    private bool IsSecondaryDisabled(Mood m)
+    {
+        // When already picked 2, disable other options (but keep picked options enabled so user can unselect)
+        return SecondaryMoods.Count >= 2 && !SecondaryMoods.Contains(m);
+    }
+
+    private async Task OnSecondaryChipChanged(IReadOnlyCollection<MudChip<Mood>> chips)
+    {
+        // Chips hold "Value" = Mood
+        var selected = chips.Select(c => (Mood)c.Value!).Distinct().ToList();
+
+        // Enforce max 2
+        if (selected.Count > 2)
+            selected = selected.Take(2).ToList();
+
+        // Ensure primary is not in secondary
+        selected = selected.Where(x => x != Primary).ToList();
+
+        SecondaryMoods = selected;
+        await SecondaryMoodsChanged.InvokeAsync(SecondaryMoods);
+    }
+}
+
+<style>
+.mood-card{
+    border-radius:16px;
+}
+</style>
