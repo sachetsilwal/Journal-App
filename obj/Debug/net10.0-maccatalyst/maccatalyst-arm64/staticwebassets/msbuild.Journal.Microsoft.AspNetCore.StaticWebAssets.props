@@ -112,12 +112,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>o1k9v66gaw</Fingerprint>
-      <Integrity>vISZrCjtJbMsyFzjO2pX25LcRLXZ1QpHgS0ZcCt0v+c=</Integrity>
+      <Fingerprint>495ydvfgfn</Fingerprint>
+      <Integrity>6LcP40DZZv6GxAGgwXx1qaoA0bMaNV1/vetkC/VYji4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <FileLength>9388</FileLength>
-      <LastWriteTime>Tue, 27 Jan 2026 19:35:56 GMT</LastWriteTime>
+      <LastWriteTime>Wed, 28 Jan 2026 01:25:28 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\calendar.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\dashboard.css'))">
@@ -412,12 +412,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ApplicationBundle</AssetTraitValue>
-      <Fingerprint>q8ysy2bazp</Fingerprint>
-      <Integrity>WnbcXDk5XSccbKLh3U5XAt0uiboR69IUxfTe9EqvOfo=</Integrity>
+      <Fingerprint>dlwrgn3nao</Fingerprint>
+      <Integrity>wZnRk4Agu3NP1k8di8raP/8KOFBM5GhIlkNx8epPjzs=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>6986</FileLength>
-      <LastWriteTime>Wed, 28 Jan 2026 01:04:02 GMT</LastWriteTime>
+      <FileLength>7351</FileLength>
+      <LastWriteTime>Wed, 28 Jan 2026 01:25:59 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Journal.styles.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\editor.js'))">

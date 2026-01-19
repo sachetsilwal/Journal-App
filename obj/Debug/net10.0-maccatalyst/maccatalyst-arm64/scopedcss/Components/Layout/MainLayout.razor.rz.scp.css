@@ -62,8 +62,10 @@
     border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
     padding: 1.5rem 2rem !important;
     box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08) !important;
-    position: sticky !important;
+    position: fixed !important;
+    left: var(--sidebar-width) !important;
     top: 0 !important;
+    right: o !important;
     z-index: 900 !important;
 }
 
@@ -98,8 +100,11 @@
 
 /* CONTENT & FOOTER */
 .content[b-zjan8nnci3] {
-    padding: 2rem !important;
-    min-height: calc(100vh - 120px) !important;
+    padding-top: 100px !important;
+        /* Adjust based on your header height */
+        padding-left: 2rem !important;
+        padding-right: 2rem !important;
+        min-height: calc(100vh - 120px) !important;
 }
 
 .footer[b-zjan8nnci3] {
@@ -133,4 +138,11 @@
 .home-container.no-sidebar[b-zjan8nnci3],
 .no-sidebar[b-zjan8nnci3] {
     margin-left: 0 !important;
+}
+
+@media (max-width: 768px) {
+    .top-row[b-zjan8nnci3] {
+        left: var(--sidebar-mobile-width) !important;
+        padding: 1rem 1.5rem !important;
+    }
 }
