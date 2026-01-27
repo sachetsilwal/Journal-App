@@ -1,59 +1,292 @@
-﻿@page "/dashboard"
+@page "/dashboard"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject StreakService StreakService
+@inject MoodService MoodService
+@inject TagService TagService
+@inject NavigationManager Navigation
 
-<MudPaper Class="pa-6 glass fade-in">
-    <MudText Typo="Typo.h4">📓 Dashboard</MudText>
-    <MudText Typo="Typo.subtitle2" Class="mb-4">
-        Mood insights, streak tracking, and writing trends.
-    </MudText>
+@code {
+    private int totalEntries = 0;
+    private int currentStreak = 0;
+    private int longestStreak = 0;
+    private string moodToday = "Not set";
+    private string moodTodayIcon = string.Empty;
 
-    <MudGrid Spacing="3">
-        <MudItem xs="12" md="4">
-            <MudCard Class="card-pop">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Current Streak</MudText>
-                    <MudText Typo="Typo.h3">@_currentStreak 🔥</MudText>
-                    <MudText Typo="Typo.caption">
-                        Longest: @_longestStreak • Missed: @_missedDays
-                    </MudText>
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
+    private List<(Tag Tag, int Count)> topTags = new();
+    private List<(string MoodName, int Count)> topMoods = new();
 
-        <MudItem xs="12" md="8">
-            <MudCard Class="card-pop">
-                <MudCardContent>
-                    <MudText Typo="Typo.h6">Mood Distribution</MudText>
-                    <MudChart ChartType="ChartType.Pie" InputData="@_moodData" InputLabels="@_moodLabels" />
-                </MudCardContent>
-            </MudCard>
-        </MudItem>
-    </MudGrid>
-
-    <MudDivider Class="my-6" />
-
-    <MudText Typo="Typo.h6">Recent Entries</MudText>
-
-    @if (_recent != null && _recent.Any())
+    // Redirect to login if not authenticated
+    protected override async Task OnInitializedAsync()
     {
-        <div class="timeline">
-            @foreach (var item in _recent)
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        totalEntries = await JournalService.GetEntryCountAsync();
+
+        var currentStreakResult = await StreakService.GetCurrentStreakAsync();
+        if (currentStreakResult.Success && currentStreakResult.Streak != null)
+        {
+            currentStreak = currentStreakResult.Streak.DayCount;
+        }
+
+        var longestStreakResult = await StreakService.GetLongestStreakAsync();
+        if (longestStreakResult.Success && longestStreakResult.Streak != null)
+        {
+            longestStreak = longestStreakResult.Streak.DayCount;
+        }
+
+        await LoadMoodToday();
+        await LoadTopTags();
+        await LoadTopMoods();
+    }
+
+    private async Task LoadMoodToday()
+    {
+        var todayEntry = await JournalService.GetTodayEntryAsync();
+        if (todayEntry == null)
+        {
+            moodToday = "Not set";
+            moodTodayIcon = string.Empty;
+            return;
+        }
+
+        var dominantResult = await MoodService.GetDominantMoodForEntryAsync(todayEntry.EntryId);
+        if (dominantResult.Success && dominantResult.DominantMood != null)
+        {
+            moodToday = dominantResult.DominantMood.Name;
+            moodTodayIcon = dominantResult.DominantMood.Icon ?? string.Empty;
+        }
+        else
+        {
+            moodToday = "Not set";
+            moodTodayIcon = string.Empty;
+        }
+    }
+
+    private async Task LoadTopTags()
+    {
+        topTags.Clear();
+
+        var tagsResult = await TagService.GetUserTagsAsync();
+        if (!tagsResult.Success || tagsResult.Tags == null)
+            return;
+
+        foreach (var tag in tagsResult.Tags)
+        {
+            var entriesResult = await TagService.GetEntriesByTagAsync(tag.TagId);
+            var count = entriesResult.Success && entriesResult.Entries != null ? entriesResult.Entries.Count : 0;
+            if (count > 0)
             {
-                <MudPaper Class="pa-4 mb-3 timeline-item">
-                    <MudText Typo="Typo.subtitle1">
-                        @item.EntryDate.ToString("yyyy-MM-dd") — @item.Title
-                    </MudText>
-                    <MudText Typo="Typo.caption">
-                        Primary: @item.PrimaryMood • Updated:
-                        @item.UpdatedAtUtc.ToLocalTime().ToString("g")
-                    </MudText>
-                </MudPaper>
+                topTags.Add((tag, count));
+            }
+        }
+
+        topTags = topTags
+        .OrderByDescending(t => t.Count)
+        .ThenBy(t => t.Tag.Name)
+        .Take(3)
+        .ToList();
+    }
+
+    private async Task LoadTopMoods()
+    {
+        var trendsResult = await MoodService.GetMoodTrendsAsync(30);
+        if (trendsResult.Success && trendsResult.Trends != null)
+        {
+            topMoods = trendsResult.Trends
+            .OrderByDescending(t => t.Count)
+            .Take(3)
+            .ToList();
+        }
+    }
+
+    private void HandleLogout()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/", true);
+    }
+
+    private void NavigateToPage(string url)
+    {
+        Navigation.NavigateTo(url);
+    }
+
+    private string GetFirstName()
+    {
+        var email = AuthService.CurrentUser?.Username ?? string.Empty;
+        if (string.IsNullOrEmpty(email)) return string.Empty;
+        var namePart = email.Split('@')[0];
+        return string.IsNullOrEmpty(namePart) ? string.Empty : char.ToUpper(namePart[0]) + namePart.Substring(1);
+    }
+
+    private string GetTagStyle(Tag tag)
+    {
+        var bgColor = tag.Color ?? "#D4AF37";
+        return $"background-color: {bgColor}; border-color: {bgColor};";
+    }
+}
+
+<link rel="stylesheet" href="css/dashboard.css" />
+
+<div class="dashboard-container">
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="header-content">
+            <div class="user-welcome">
+                <h1>Welcome back, @GetFirstName()!</h1>
+                <p class="user-email">@AuthService.CurrentUser?.Username</p>
+            </div>
+            <button class="btn btn-logout" @onclick="HandleLogout">
+                Logout
+            </button>
+        </div>
+    </header>
+
+    <!-- Quick Stats -->
+    <section class="quick-stats">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Total Entries</h3>
+                <p class="stat-value">@totalEntries</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Current Streak</h3>
+                <p class="stat-value">@currentStreak days</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Mood Today</h3>
+                <p class="stat-value">@moodToday</p>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Longest Streak</h3>
+                <p class="stat-value">@longestStreak days</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="insights-grid">
+        <div class="insight-card">
+            <div class="insight-header">
+                <h3>Top Tags (last 30 days)</h3>
+            </div>
+            @if (topTags.Any())
+            {
+                <ul class="insight-list">
+                    @foreach (var tag in topTags)
+                    {
+                        <li>
+                            <span class="tag-chip small" style="@GetTagStyle(tag.Tag)">@tag.Tag.Name</span>
+                            <span class="pill">@tag.Count entries</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="muted">No tag usage yet.</p>
             }
         </div>
-    }
-    else
-    {
-        <MudText Typo="Typo.caption" Class="mt-2">
-            No recent entries available.
-        </MudText>
-    }
-</MudPaper>
+
+        <div class="insight-card">
+            <div class="insight-header">
+                <h3>Top Moods (last 30 days)</h3>
+            </div>
+            @if (topMoods.Any())
+            {
+                <ul class="insight-list">
+                    @foreach (var mood in topMoods)
+                    {
+                        <li>
+                            <span class="mood-chip small">@mood.MoodName</span>
+                            <span class="pill">@mood.Count times</span>
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="muted">No mood data yet.</p>
+            }
+        </div>
+    </section>
+
+    <!-- Main Navigation -->
+    <section class="main-navigation">
+        <h2>What would you like to do?</h2>
+
+        <div class="nav-grid">
+            <div class="nav-item" @onclick="@(() => NavigateToPage("/today"))">
+                <h3>Today's Entry</h3>
+                <p>Write or edit today's journal entry</p>
+                <span class="nav-arrow">→</span>
+            </div>
+
+            <div class="nav-item" @onclick="@(() => NavigateToPage("/entries"))">
+                <h3>All Entries</h3>
+                <p>Browse all your journal entries</p>
+                <span class="nav-arrow">→</span>
+            </div>
+
+            <div class="nav-item" @onclick="@(() => NavigateToPage("/calendar"))">
+                <h3>Calendar View</h3>
+                <p>Navigate entries by date</p>
+                <span class="nav-arrow">→</span>
+            </div>
+
+            <div class="nav-item" @onclick="@(() => NavigateToPage("/search"))">
+                <h3>Search</h3>
+                <p>Find entries by content or tags</p>
+                <span class="nav-arrow">→</span>
+            </div>
+
+            <div class="nav-item" @onclick="@(() => NavigateToPage("/analytics"))">
+                <h3>Analytics</h3>
+                <p>View your journaling insights</p>
+                <span class="nav-arrow">→</span>
+            </div>
+
+            <div class="nav-item" @onclick="@(() => NavigateToPage("/settings"))">
+                <h3>Settings</h3>
+                <p>Customize your preferences</p>
+                <span class="nav-arrow">→</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Info Card -->
+    <section class="user-info-section">
+        <div class="user-info-card">
+            <h3>Account Information</h3>
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">@AuthService.CurrentUser?.Username</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Account Created:</span>
+                <span class="info-value">@AuthService.CurrentUser?.CreatedAt.ToString("MMMM dd, yyyy")</span>
+            </div>
+            @if (AuthService.CurrentUser?.LastLogin != null)
+            {
+                <div class="info-row">
+                    <span class="info-label">Last Login:</span>
+                    <span class="info-value">@AuthService.CurrentUser?.LastLogin?.ToString("MMMM dd, yyyy hh:mm tt")</span>
+                </div>
+            }
+        </div>
+    </section>
+</div>

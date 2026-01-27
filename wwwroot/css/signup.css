@@ -1,0 +1,161 @@
+/* ============================================================
+   Signup Page — Version 2.0: Glass Bento + Neon Glow
+   ============================================================ */
+
+/* Root Design Tokens */
+:root {
+    --bg-root: #0A0A0B;
+    --bg-glass: rgba(255, 255, 255, 0.06);
+    --border-glass: rgba(255, 255, 255, 0.12);
+    --accent-color: #8B5CF6;
+    --accent-teal: #06B6D4;
+    --text-primary: #F5F5F7;
+    --text-secondary: rgba(245, 245, 247, 0.8);
+    --radius-md: 24px;
+    --transition-premium: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --shadow-lift: 0 20px 60px rgba(139, 92, 246, 0.25);
+    --glow-accent: 0 0 30px rgba(139, 92, 246, 0.35);
+}
+
+/* -------------------
+   Signup Page Layout
+   ------------------- */
+.signup-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Glass Card */
+.signup-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 2.5rem 3rem;
+    max-width: 450px;
+    width: 100%;
+    box-shadow: var(--shadow-soft);
+    transition: var(--transition-premium);
+}
+
+.signup-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lift), var(--glow-accent);
+}
+
+/* Logo */
+.signup-logo {
+    height: 60px;
+    margin-bottom: 1rem;
+}
+
+/* Header */
+.signup-header h2 {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    font-size: 1.8rem;
+    color: var(--text-primary);
+}
+
+.signup-header .subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+/* Form Controls */
+.form-control-lg {
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+    border-radius: 12px;
+    transition: all 0.3s;
+    border: 1px solid var(--border-glass);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.form-control-lg:focus {
+    box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.4);
+    border-color: var(--accent-color);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+/* Primary Button */
+.btn-primary {
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-teal));
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: var(--transition-premium);
+}
+
+.btn-primary:hover {
+    background: linear-gradient(90deg, #7C3AED, #06B6D4);
+    box-shadow: 0 5px 20px rgba(139, 92, 246, 0.3);
+    transform: translateY(-4px);
+}
+
+/* Login Link */
+.login-link a {
+    color: var(--accent-color);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.login-link a:hover {
+    text-decoration: underline;
+}
+
+/* -------------------
+   Animations
+   ------------------- */
+.animated {
+    animation-duration: 0.6s;
+    animation-fill-mode: both;
+}
+
+.fadeIn {
+    animation-name: fadeInUp;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* -------------------
+   Responsive
+   ------------------- */
+@media (max-width: 480px) {
+    .signup-card {
+        padding: 2rem 1.5rem;
+    }
+
+    .signup-header h2 {
+        font-size: 1.5rem;
+    }
+
+    .form-control-lg {
+        font-size: 0.95rem;
+        padding: 0.7rem 0.9rem;
+    }
+
+    .btn-primary {
+        font-size: 0.95rem;
+        padding: 0.65rem 1.25rem;
+    }
+}

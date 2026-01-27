@@ -1,0 +1,382 @@
+@page "/export/print"
+@using global::Journal.Services
+@using global::Journal.Models
+@using Markdig
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject TagService TagService
+@inject MoodService MoodService
+@inject ExportService ExportService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="print-container">
+    <div class="no-print control-bar">
+        @if (isGenerating)
+        {
+            <div class="generating-spinner">
+                <div class="spinner"></div>
+                <span>Generating PDF...</span>
+            </div>
+        }
+        else
+        {
+            <div class="control-info">
+                <p>Generating a high-quality PDF of your entry. When ready, a save dialog will appear.</p>
+            </div>
+            <button class="btn-print" @onclick="GeneratePdf" disabled="@isLoading">Generate & Save PDF</button>
+            <button class="btn-close" @onclick="Close">Done</button>
+        }
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading">Preparing journal content...</div>
+    }
+    else
+    {
+        <div id="print-area">
+            <div class="document-header">
+                <h1>Journal Entry</h1>
+                <p>Exported for @(AuthService.CurrentUser?.Username ?? "User")</p>
+                <p class="meta">Generated on @DateTime.Now.ToString("MMMM d, yyyy")</p>
+            </div>
+
+            @foreach (var entry in entries)
+            {
+                <div class="entry-block">
+                    <div class="entry-header">
+                        <h2>@(string.IsNullOrEmpty(entry.Title) ? "Untitled Entry" : entry.Title)</h2>
+                        <div class="date">@DateTime.Parse(entry.EntryDate).ToString("MMMM d, yyyy • dddd")</div>
+                    </div>
+
+                    <div class="entry-meta">
+                        @if (entryMoods.TryGetValue(entry.EntryId, out var moods) && moods.Any())
+                        {
+                            <div class="meta-row">
+                                <strong>Mood:</strong>
+                                @foreach (var mood in moods)
+                                {
+                                    <span class="mood-item">@mood.Name @(mood.IsPrimary ? "(Primary)" : "")</span>
+                                }
+                            </div>
+                        }
+
+                        @if (entryTags.TryGetValue(entry.EntryId, out var tags) && tags.Any())
+                        {
+                            <div class="meta-row">
+                                <strong>Tags:</strong>
+                                @string.Join(", ", tags.Select(t => t.Name))
+                            </div>
+                        }
+                    </div>
+
+                    <div class="entry-content">
+                        @((MarkupString)Markdown.ToHtml(entry.Content ?? ""))
+                    </div>
+
+                    <hr class="entry-divider" />
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<style>
+    /* Screen Styles */
+    .print-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px;
+        background: white;
+        min-height: 100vh;
+    }
+
+    .control-bar {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: white;
+        padding: 20px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+        border-radius: 12px;
+        z-index: 1000;
+        max-width: 300px;
+        border: 1px solid #eee;
+    }
+
+    .generating-spinner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        padding: 10px;
+    }
+
+    .spinner {
+        width: 30px;
+        height: 30px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #d32f2f;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .control-info {
+        display: flex;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: #555;
+        line-height: 1.4;
+        margin-bottom: 5px;
+    }
+
+    .btn-print {
+        background: #d32f2f;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-align: center;
+    }
+
+    .btn-print:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-print:hover:not(:disabled) {
+        background: #b71c1c;
+        transform: translateY(-2px);
+    }
+
+    .btn-close {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+        padding: 10px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+    }
+
+    /* Document Styles */
+    .document-header {
+        text-align: center;
+        margin-bottom: 50px;
+        border-bottom: 2px solid #333;
+        padding-bottom: 20px;
+    }
+
+    .document-header h1 {
+        margin: 0;
+        font-size: 2.5em;
+        font-family: serif;
+    }
+
+    .meta {
+        color: #666;
+        font-style: italic;
+    }
+
+    .entry-block {
+        break-inside: avoid;
+        margin-bottom: 40px;
+    }
+
+    .entry-header h2 {
+        margin: 0 0 5px 0;
+        color: #333;
+    }
+
+    .entry-header .date {
+        color: #666;
+        font-weight: 500;
+        margin-bottom: 15px;
+    }
+
+    .entry-meta {
+        font-size: 0.9em;
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 4px;
+        margin-bottom: 15px;
+    }
+
+    .entry-content {
+        line-height: 1.6;
+        font-family: Georgia, serif;
+        text-align: justify;
+    }
+
+    .entry-divider {
+        border: none;
+        border-top: 1px solid #eee;
+        margin-top: 40px;
+    }
+
+    /* Print Styles */
+    @@media print {
+        .no-print {
+            display: none !important;
+        }
+
+        .print-container {
+            width: 100%;
+            max-width: none;
+            padding: 0;
+            margin: 0;
+        }
+    }
+</style>
+
+@code {
+    [SupplyParameterFromQuery]
+    public string? StartDate { get; set; }
+
+    [SupplyParameterFromQuery]
+    public string? EndDate { get; set; }
+
+    [SupplyParameterFromQuery]
+    public int? EntryId { get; set; }
+
+    private List<JournalEntry> entries = new();
+    private Dictionary<int, List<Mood>> entryMoods = new();
+    private Dictionary<int, List<Tag>> entryTags = new();
+    private bool isLoading = true;
+    private bool isGenerating = false;
+    private bool _hasAutoStarted = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        await LoadData();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !isLoading && entries.Any() && !_hasAutoStarted)
+        {
+            _hasAutoStarted = true;
+            // Small delay for DOM to settle
+            await Task.Delay(1000);
+            await GeneratePdf();
+        }
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+
+        if (EntryId.HasValue)
+        {
+            var entry = await JournalService.GetEntryByIdAsync(EntryId.Value);
+            if (entry != null)
+            {
+                entries = new List<JournalEntry> { entry };
+            }
+        }
+        else
+        {
+            DateTime? start = null;
+            if (DateTime.TryParse(StartDate, out var s)) start = s;
+
+            DateTime? end = null;
+            if (DateTime.TryParse(EndDate, out var e)) end = e;
+
+            var result = await JournalService.SearchEntriesAsync(
+            null, null, null, null, start, end, 1, 100
+            );
+
+            entries = result.Entries;
+        }
+
+        foreach (var entry in entries)
+        {
+            var tagsResult = await TagService.GetEntryTagsAsync(entry.EntryId);
+            if (tagsResult.Success && tagsResult.Tags != null)
+                entryTags[entry.EntryId] = tagsResult.Tags;
+
+            var moodsResult = await MoodService.GetEntryMoodsAsync(entry.EntryId);
+            if (moodsResult.Success && moodsResult.EntryMoods != null)
+            {
+                var allMoods = await MoodService.GetAllMoodsAsync();
+                if (allMoods.Success && allMoods.Moods != null)
+                {
+                    entryMoods[entry.EntryId] = moodsResult.EntryMoods
+                    .Select(em =>
+                    {
+                        var m = allMoods.Moods.FirstOrDefault(x => x.MoodId == em.MoodId);
+                        if (m != null) m.IsPrimary = em.IsPrimary;
+                        return m;
+                    })
+                    .Where(m => m != null)
+                    .Cast<Mood>()
+                    .ToList();
+                }
+            }
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task GeneratePdf()
+    {
+        if (isGenerating || isLoading || !entries.Any()) return;
+
+        isGenerating = true;
+        StateHasChanged();
+
+        try
+        {
+            string fileName = EntryId.HasValue
+            ? $"Journal-Entry-{entries[0].EntryDate}.pdf"
+            : $"Journal-Export-{DateTime.Now:yyyy-MM-dd}.pdf";
+
+            // Call the JS helper
+            var base64Data = await JSRuntime.InvokeAsync<string>("pdfHelper.generatePdfBase64", "print-area", fileName);
+
+            if (!string.IsNullOrEmpty(base64Data))
+            {
+                byte[] pdfBytes = Convert.FromBase64String(base64Data);
+                await ExportService.SavePdfToDownloadsAsync(pdfBytes, fileName);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"PDF Generation Failed: {ex.Message}");
+        }
+        finally
+        {
+            isGenerating = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Close()
+    {
+        Navigation.NavigateTo("/entries");
+    }
+}

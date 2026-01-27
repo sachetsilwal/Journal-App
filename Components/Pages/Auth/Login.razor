@@ -1,0 +1,114 @@
+@page "/login"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+@inject SettingsService SettingsService
+@inject IJSRuntime JSRuntime
+
+<link rel="stylesheet" href="css/login.css" />
+
+<div class="login-page">
+    <div class="login-card shadow-lg">
+        <div class="login-header text-center">
+            <img src="sachet.png" alt="Journals Logo" class="login-logo" />
+            <h2>Swagatam!</h2>
+            <p class="subtitle">Login to your journal</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger animated fadeIn">
+                @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success animated fadeIn">
+                @successMessage
+            </div>
+        }
+
+        <EditForm Model="@this" OnValidSubmit="HandleLogin">
+            <div class="form-group mb-3">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-control form-control-lg" @bind="email"
+                    placeholder="Enter your email" disabled="@isLoading" />
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control form-control-lg" @bind="password"
+                    placeholder="Enter your password" disabled="@isLoading" @onkeypress="HandleKeyPress" />
+            </div>
+
+            <button class="btn btn-primary btn-lg btn-block" type="button" @onclick="HandleLogin" disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span><i class="fas fa-spinner fa-spin me-2"></i>Logging in...</span>
+                }
+                else
+                {
+                    <span>Login</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="text-center mt-4 signup-link">
+            Don't have an account? <a href="/signup">Sign up here</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        isLoading = true;
+
+        try
+        {
+            var result = await AuthService.LoginAsync(email, password);
+
+            if (result.Success)
+            {
+                successMessage = result.Message;
+
+                // Apply theme
+                var theme = await SettingsService.GetThemeAsync();
+                await JSRuntime.InvokeVoidAsync("setTheme", theme);
+
+                await Task.Delay(500);
+                Navigation.NavigateTo("/dashboard");
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !isLoading)
+        {
+            await HandleLogin();
+        }
+    }
+}

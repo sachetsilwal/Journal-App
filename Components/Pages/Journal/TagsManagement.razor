@@ -1,0 +1,198 @@
+@page "/tags"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject TagService TagService
+@inject NavigationManager Navigation
+
+@code {
+    private List<Tag> tags = new();
+    private string newTagName = string.Empty;
+    private string newTagColor = "#D4AF37";
+    private Tag? editingTag = null;
+
+    private string? alertMessage = null;
+    private bool isSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        await LoadTags();
+    }
+
+    private async Task LoadTags()
+    {
+        var result = await TagService.GetUserTagsAsync();
+        if (result.Success && result.Tags != null)
+        {
+            tags = result.Tags.OrderByDescending(t => t.CreatedAt).ToList();
+        }
+        else
+        {
+            alertMessage = result.Message;
+            isSuccess = false;
+        }
+    }
+
+    private async Task CreateTag()
+    {
+        if (string.IsNullOrWhiteSpace(newTagName))
+        {
+            alertMessage = "Tag name is required.";
+            isSuccess = false;
+            return;
+        }
+
+        var result = await TagService.CreateTagAsync(newTagName.Trim(), newTagColor);
+        alertMessage = result.Message;
+        isSuccess = result.Success;
+
+        if (result.Success)
+        {
+            newTagName = string.Empty;
+            newTagColor = "#D4AF37";
+            await LoadTags();
+        }
+    }
+
+    private void StartEdit(Tag tag)
+    {
+        editingTag = new Tag
+        {
+            TagId = tag.TagId,
+            UserId = tag.UserId,
+            Name = tag.Name,
+            Color = string.IsNullOrWhiteSpace(tag.Color) ? "#D4AF37" : tag.Color,
+            CreatedAt = tag.CreatedAt
+        };
+        alertMessage = null;
+    }
+
+    private void CancelEdit()
+    {
+        editingTag = null;
+    }
+
+    private async Task SaveEdit()
+    {
+        if (editingTag == null)
+            return;
+
+        var result = await TagService.UpdateTagAsync(editingTag.TagId, editingTag.Name.Trim(), editingTag.Color);
+        alertMessage = result.Message;
+        isSuccess = result.Success;
+
+        if (result.Success)
+        {
+            editingTag = null;
+            await LoadTags();
+        }
+    }
+
+    private async Task DeleteTag(int tagId)
+    {
+        var result = await TagService.DeleteTagAsync(tagId);
+        alertMessage = result.Message;
+        isSuccess = result.Success;
+
+        if (result.Success)
+        {
+            await LoadTags();
+        }
+    }
+
+    private string GetTagStyle(Tag tag)
+    {
+        var color = string.IsNullOrWhiteSpace(tag.Color) ? "#D4AF37" : tag.Color;
+        return $"background-color: {color}; border-color: {color};";
+    }
+}
+
+<link rel="stylesheet" href="css/tags.css" />
+
+<div class="tags-container">
+    <!-- Header -->
+    <header class="tags-header">
+        <div class="header-content">
+            <h1>Tag Management</h1>
+            <p>Create, edit, and organize your tags</p>
+        </div>
+    </header>
+
+    <section class="tags-content">
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @(isSuccess ? "alert-success" : "alert-error")">
+                <span>@alertMessage</span>
+            </div>
+        }
+
+        <!-- Create Tag -->
+        <div class="card">
+            <div class="card-header">Create Tag</div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Tag Name</label>
+                        <input type="text" class="input-field" placeholder="e.g., Gratitude" @bind="newTagName" />
+                    </div>
+                    <div class="form-group">
+                        <label>Color</label>
+                        <input type="color" class="color-input" @bind="newTagColor" />
+                    </div>
+                </div>
+                <button class="btn btn-primary" @onclick="CreateTag">Add Tag</button>
+            </div>
+        </div>
+
+        <!-- Tag List -->
+        <div class="card">
+            <div class="card-header">Your Tags (@tags.Count)</div>
+            <div class="card-body">
+                @if (tags.Any())
+                {
+                    <div class="tags-grid">
+                        @foreach (var tag in tags)
+                        {
+                            <div class="tag-card">
+                                <div class="tag-chip" style="@GetTagStyle(tag)">@tag.Name</div>
+                                <p class="tag-meta">Created @tag.CreatedAt.ToString("MMM dd, yyyy")</p>
+
+                                @if (editingTag != null && editingTag.TagId == tag.TagId)
+                                {
+                                    <div class="edit-form">
+                                        <input type="text" class="input-field" @bind="editingTag.Name" />
+                                        <input type="color" class="color-input" @bind="editingTag.Color" />
+                                        <div class="edit-actions">
+                                            <button class="btn btn-primary" @onclick="SaveEdit">Save</button>
+                                            <button class="btn btn-secondary" @onclick="CancelEdit">Cancel</button>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="card-actions">
+                                        <button class="btn btn-secondary" @onclick="@(() => StartEdit(tag))">Edit</button>
+                                        <button class="btn btn-danger" @onclick="@(() => DeleteTag(tag.TagId))">Delete</button>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-state">
+                        <p><strong>No tags yet</strong></p>
+                        <p>Create your first tag to organize entries.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+</div>

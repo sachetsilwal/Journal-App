@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"name": "Services",
+			"path": "../../../JournalApp/Services"
+		},
+		{
+			"name": "Journal-App",
+			"path": "../.."
+		},
+		{
+			"name": ".vscode",
+			"path": "../../../JournalApp/.vscode"
+		},
+		{
+			"name": "wwwroot",
+			"path": "../../../JournalApp/wwwroot"
+		}
+	],
+	"settings": {}
+}

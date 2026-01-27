@@ -1,0 +1,120 @@
+@page "/signup"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/signup.css" />
+
+<div class="signup-page">
+    <div class="signup-card shadow-lg">
+        <div class="signup-header text-center">
+            <img src="sachet.png" alt="Journals Logo" class="signup-logo" />
+            <h2>Create Account</h2>
+            <p class="subtitle">Start your journaling journey</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="alert alert-danger animated fadeIn">
+                @errorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(successMessage))
+        {
+            <div class="alert alert-success animated fadeIn">
+                @successMessage
+            </div>
+        }
+
+        <EditForm Model="@this" OnValidSubmit="HandleSignup">
+            <div class="form-group mb-3">
+                <label for="email">Email</label>
+                <input type="email" id="email" class="form-control form-control-lg" @bind="email"
+                    placeholder="Enter your email" disabled="@isLoading" />
+            </div>
+
+            <div class="form-group mb-3">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control form-control-lg" @bind="password"
+                    placeholder="Enter password (min 6 characters)" disabled="@isLoading" />
+            </div>
+
+            <div class="form-group mb-4">
+                <label for="confirmPassword">Confirm Password</label>
+                <input type="password" id="confirmPassword" class="form-control form-control-lg" @bind="confirmPassword"
+                    placeholder="Confirm your password" disabled="@isLoading" @onkeypress="HandleKeyPress" />
+            </div>
+
+            <button class="btn btn-primary btn-lg btn-block" type="button" @onclick="HandleSignup"
+                disabled="@isLoading">
+                @if (isLoading)
+                {
+                    <span><i class="fas fa-spinner fa-spin me-2"></i>Creating account...</span>
+                }
+                else
+                {
+                    <span>Sign Up</span>
+                }
+            </button>
+        </EditForm>
+
+        <div class="text-center mt-4 login-link">
+            Already have an account? <a href="/login">Login here</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string email = string.Empty;
+    private string password = string.Empty;
+    private string confirmPassword = string.Empty;
+    private string errorMessage = string.Empty;
+    private string successMessage = string.Empty;
+    private bool isLoading = false;
+
+    private async Task HandleSignup()
+    {
+        errorMessage = string.Empty;
+        successMessage = string.Empty;
+        isLoading = true;
+
+        try
+        {
+            var result = await AuthService.SignupAsync(email, password, confirmPassword);
+
+            if (result.Success)
+            {
+                successMessage = result.Message;
+
+                email = string.Empty;
+                password = string.Empty;
+                confirmPassword = string.Empty;
+
+                await Task.Delay(1500);
+                Navigation.NavigateTo("/login");
+            }
+            else
+            {
+                errorMessage = result.Message;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !isLoading)
+        {
+            await HandleSignup();
+        }
+    }
+}

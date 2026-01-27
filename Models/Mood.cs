@@ -1,20 +1,22 @@
-namespace Journal.Models;
+using SQLite;
 
-public enum MoodCategory
+namespace Journal.Models
 {
-    Positive,
-    Neutral,
-    Negative
-}
+    [Table("Moods")]
+    public class Mood
+    {
+        [PrimaryKey, AutoIncrement]
+        public int MoodId { get; set; }
 
-public enum Mood
-{
-    // Positive
-    Happy, Excited, Relaxed, Grateful, Confident,
+        public string Name { get; set; } = string.Empty;
 
-    // Neutral
-    Calm, Thoughtful, Curious, Nostalgic, Bored,
+        public string Icon { get; set; } = string.Empty;
 
-    // Negative
-    Sad, Angry, Stressed, Lonely, Anxious
+        public string? Color { get; set; }
+
+        public int Intensity { get; set; }
+
+        [Ignore]
+        public bool IsPrimary { get; set; }
+    }
 }

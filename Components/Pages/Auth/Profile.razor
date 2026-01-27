@@ -1,0 +1,141 @@
+@page "/profile"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject StreakService StreakService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<link rel="stylesheet" href="css/profile.css" />
+
+<div class="profile-container">
+    <!-- Header -->
+    <header class="profile-header bg-gradient text-white">
+        <div class="header-content d-flex align-items-center justify-content-between">
+            <div>
+                <h1>Profile</h1>
+                <p>Welcome, @GetFirstName()</p>
+            </div>
+            <div class="profile-avatar">
+                <img src="images/avatar-placeholder.png" alt="Avatar" />
+            </div>
+        </div>
+    </header>
+
+    <section class="profile-content container">
+        <!-- Account Info Card -->
+        <div class="card info-card shadow-lg">
+            <div class="card-header">Account Information</div>
+            <div class="card-body info-grid">
+                <div class="info-item">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">@AuthService.CurrentUser?.Username</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Member Since</span>
+                    <span class="info-value">@AuthService.CurrentUser?.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                </div>
+                @if (AuthService.CurrentUser?.LastLogin != null)
+                {
+                    <div class="info-item">
+                        <span class="info-label">Last Login</span>
+                        <span class="info-value">@AuthService.CurrentUser?.LastLogin?.ToString("MMM dd, yyyy hh:mm                        tt")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Activity Stats Card -->
+        <div class="card stats-card shadow-lg">
+            <div class="card-header">Activity Stats</div>
+            <div class="card-body stats-grid">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p class="stat-label">Total Entries</p>
+                        <p class="stat-value">@totalEntries</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p class="stat-label">Current Streak</p>
+                        <p class="stat-value">@currentStreak days</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <p class="stat-label">Longest Streak</p>
+                        <p class="stat-value">@longestStreak days</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Security Tips Card -->
+        <div class="card tips-card shadow-lg">
+            <div class="card-header">Security & Tips</div>
+            <div class="card-body">
+                <ul class="tips-list">
+                    <li>Use a unique password for your account.</li>
+                    <li>Export your data regularly for backups.</li>
+                    <li>Keep your app updated for the latest features.</li>
+                    <li>Enable 2FA for added security.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Optional Edit Profile Button -->
+        <div class="text-center mt-4">
+            <button class="btn btn-outline-primary btn-lg" @onclick="EditProfile">
+                <i class="fas fa-user-edit me-2"></i> Edit Profile
+            </button>
+        </div>
+    </section>
+</div>
+
+@code {
+    private int totalEntries = 0;
+    private int currentStreak = 0;
+    private int longestStreak = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        await LoadProfileData();
+    }
+
+    private async Task LoadProfileData()
+    {
+        totalEntries = await JournalService.GetEntryCountAsync();
+
+        var currentResult = await StreakService.GetCurrentStreakAsync();
+        if (currentResult.Success && currentResult.Streak != null)
+        {
+            currentStreak = currentResult.Streak.DayCount;
+        }
+
+        var longestResult = await StreakService.GetLongestStreakAsync();
+        if (longestResult.Success && longestResult.Streak != null)
+        {
+            longestStreak = longestResult.Streak.DayCount;
+        }
+    }
+
+    private string GetFirstName()
+    {
+        var email = AuthService.CurrentUser?.Username ?? string.Empty;
+        if (string.IsNullOrEmpty(email)) return string.Empty;
+        var namePart = email.Split('@')[0];
+        return string.IsNullOrEmpty(namePart) ? string.Empty : char.ToUpper(namePart[0]) + namePart.Substring(1);
+    }
+
+    private void EditProfile()
+    {
+        Navigation.NavigateTo("/edit-profile");
+    }
+}

@@ -9,24 +9,100 @@
       "PackagePath": "staticwebassets/_framework/blazor.webview.js"
     },
     {
-      "Id": "/Users/sachetshilwal/Documents/Journal/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/scopedcss/bundle/Journal.styles.css",
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/scopedcss/bundle/Journal.styles.css",
       "PackagePath": "staticwebassets/Journal.styles.css"
     },
     {
-      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/app.css",
-      "PackagePath": "staticwebassets/app.css"
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/all-entries.css",
+      "PackagePath": "staticwebassets/css/all-entries.css"
     },
     {
-      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/index.html",
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/analytics.css",
+      "PackagePath": "staticwebassets/css/analytics.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/app.css",
+      "PackagePath": "staticwebassets/css/app.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/bootstrap/bootstrap.min.css",
+      "PackagePath": "staticwebassets/css/bootstrap/bootstrap.min.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/bootstrap/bootstrap.min.css.map",
+      "PackagePath": "staticwebassets/css/bootstrap/bootstrap.min.css.map"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/calendar.css",
+      "PackagePath": "staticwebassets/css/calendar.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/dashboard.css",
+      "PackagePath": "staticwebassets/css/dashboard.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/edit-entry.css",
+      "PackagePath": "staticwebassets/css/edit-entry.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/export.css",
+      "PackagePath": "staticwebassets/css/export.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/home.css",
+      "PackagePath": "staticwebassets/css/home.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/login.css",
+      "PackagePath": "staticwebassets/css/login.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/profile.css",
+      "PackagePath": "staticwebassets/css/profile.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/search.css",
+      "PackagePath": "staticwebassets/css/search.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/settings.css",
+      "PackagePath": "staticwebassets/css/settings.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/signup.css",
+      "PackagePath": "staticwebassets/css/signup.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/tags.css",
+      "PackagePath": "staticwebassets/css/tags.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/today-entry.css",
+      "PackagePath": "staticwebassets/css/today-entry.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/css/variables.css",
+      "PackagePath": "staticwebassets/css/variables.css"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/favicon.png",
+      "PackagePath": "staticwebassets/favicon.png"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/index.html",
       "PackagePath": "staticwebassets/index.html"
     },
     {
-      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css",
-      "PackagePath": "staticwebassets/lib/bootstrap/dist/css/bootstrap.min.css"
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/js/editor.js",
+      "PackagePath": "staticwebassets/js/editor.js"
     },
     {
-      "Id": "/Users/sachetshilwal/Documents/Journal/wwwroot/lib/bootstrap/dist/css/bootstrap.min.css.map",
-      "PackagePath": "staticwebassets/lib/bootstrap/dist/css/bootstrap.min.css.map"
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/js/pdf-helper.js",
+      "PackagePath": "staticwebassets/js/pdf-helper.js"
+    },
+    {
+      "Id": "/Users/sachetshilwal/Desktop/Journal-App/wwwroot/sachet.png",
+      "PackagePath": "staticwebassets/sachet.png"
     },
     {
       "Id": "obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.Journal.Microsoft.AspNetCore.StaticWebAssetEndpoints.props",

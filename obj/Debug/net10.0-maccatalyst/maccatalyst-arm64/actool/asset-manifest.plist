@@ -6,9 +6,9 @@
 	<dict>
 		<key>output-files</key>
 		<array>
-			<string>/Users/sachetshilwal/Documents/Journal/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/actool/bundle/Assets.car</string>
-			<string>/Users/sachetshilwal/Documents/Journal/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/actool/bundle/appicon.icns</string>
-			<string>/Users/sachetshilwal/Documents/Journal/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/actool/partial-info.plist</string>
+			<string>/Users/sachetshilwal/Desktop/Journal-App/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/actool/bundle/Assets.car</string>
+			<string>/Users/sachetshilwal/Desktop/Journal-App/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/actool/bundle/appicon.icns</string>
+			<string>/Users/sachetshilwal/Desktop/Journal-App/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/actool/partial-info.plist</string>
 		</array>
 	</dict>
 </dict>

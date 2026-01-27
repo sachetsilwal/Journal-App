@@ -1,32 +1,37 @@
-using System.ComponentModel.DataAnnotations;
+using SQLite;
 
-namespace Journal.Models;
-
-public class JournalEntry
+namespace Journal.Models
 {
-    [Key]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    // Journal Entry model - represents a single journal entry
+    [Table("JournalEntries")]
+    public class JournalEntry
+    {
+        // Unique identifier for the entry
+        [PrimaryKey, AutoIncrement]
+        public int EntryId { get; set; }
 
-    [Required]
-    public DateOnly EntryDate { get; set; } // One entry per day rule (enforced also via DB unique index)
+        // User who created this entry
+        public int UserId { get; set; }
 
-    [Required, MaxLength(200)]
-    public string Title { get; set; } = "Untitled";
+        // Title of the entry (optional)
+        public string? Title { get; set; }
 
-    [Required]
-    public string ContentMarkdown { get; set; } = string.Empty;
+        // Main content of the journal entry
+        public string Content { get; set; } = string.Empty;
 
-    [Required]
-    public Mood PrimaryMood { get; set; }
+        // Date of the entry (YYYY-MM-DD format)
+        public string EntryDate { get; set; } = string.Empty;
 
-    public Mood? SecondaryMood1 { get; set; }
-    public Mood? SecondaryMood2 { get; set; }
+        // Category ID (optional)
+        public int? CategoryId { get; set; }
 
-    // Simple storage for coursework: CSV tags + category
-    public string Category { get; set; } = "General";
-    public string TagsCsv { get; set; } = string.Empty;
+        // Word count
+        public int WordCount { get; set; }
 
-    // System-generated timestamps
-    public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAtUtc { get; set; } = DateTime.UtcNow;
+        // When the entry was created
+        public DateTime CreatedAt { get; set; }
+
+        // When the entry was last updated
+        public DateTime UpdatedAt { get; set; }
+    }
 }

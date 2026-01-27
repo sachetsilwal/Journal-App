@@ -1,0 +1,110 @@
+/* Global CSS Variables - Theme Definition */
+
+:root {
+    /* Primary Color - Dark Teal Green */
+    --primary-color: #0d4a47;
+
+    /* Accent Color - Golden Yellow */
+    --accent-color: #d4af37;
+
+    /* Background Color - Off White */
+    --off-white: #f5f5f5;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+
+    /* Text Colors */
+    --text-color: #2c2c2c;
+    --text-light: #555;
+    --text-lighter: #999;
+
+    /* Border Colors */
+    --border-color: #e0e0e0;
+    --light-gray: #e8e8e8;
+
+    /* Semantic Colors */
+    --success-color: #388e3c;
+    --error-color: #d32f2f;
+    --warning-color: #f57c00;
+    --info-color: #0288d1;
+
+    /* Shadows */
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 6px 16px rgba(0, 0, 0, 0.12);
+
+    /* Transitions */
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    --transition-slow: 0.5s ease;
+
+    /* Border Radius */
+    --radius-sm: 2px;
+    --radius-md: 4px;
+    --radius-lg: 8px;
+
+    /* Spacing */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+}
+
+/* Ash Teal Green Dark Mode Theme */
+[data-theme="dark"] {
+    /* Primary Color - Muted Vibrant Teal */
+    --primary-color: #1a6b66;
+
+    /* Accent Color - Yellow */
+    --accent-color: #d4af37;
+
+    /* Background Colors - Inverted for depth */
+    --off-white: #193734;
+    /* Deep background (the previous card color) */
+    --bg-primary: #234945;
+    /* Lighter card color */
+    --bg-secondary: #2d615b;
+    /* Secondary/Inset surface */
+
+    /* Text Colors - High Contrast & Highlights */
+    --text-color: #f8faf9;
+    /* Soft Off-White for main body text - Easier on eyes than pure white */
+    --text-light: var(--accent-color);
+    /* Headers/Card Titles/Highlights - Golden Accent */
+    --text-lighter: #d1e5e3;
+    /* Muted labels/metadata - Ash Off-White */
+
+    /* Border Colors - Subtle adjustment for lighter cards */
+    --border-color: #2d5c58;
+    --light-gray: #356e69;
+
+    /* Adjusted shadows for dark mode - More subtle for premium feel */
+    --shadow-sm: 0 2px 8px rgba(38, 101, 86, 0.5);
+    --shadow-md: 0 4px 12px rgba(38, 101, 86, 0.5);
+    --shadow-lg: 0 6px 16px rgba(38, 101, 86, 0.5);
+}
+
+/* Fallback: Automatically apply dark theme if system is dark */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        /* Primary Color */
+        --primary-color: #1a6b66;
+        --accent-color: #d4af37;
+
+        /* Background Colors - Ash Teal Green */
+        --off-white: #152b29;
+        --bg-primary: #234945;
+        --bg-secondary: #2a5954;
+
+        /* Text Colors */
+        --text-color: #ffffff;
+        --text-light: var(--accent-color);
+        --text-lighter: #a3b8b6;
+
+        /* Borders */
+        --border-color: #2d5c58;
+        --light-gray: #356e69;
+    }
+}

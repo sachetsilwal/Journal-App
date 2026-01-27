@@ -1,0 +1,298 @@
+@page "/search"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject TagService TagService
+@inject MoodService MoodService
+@inject NavigationManager Navigation
+
+@code {
+    private string searchKeyword = string.Empty;
+    private List<JournalEntry> searchResults = new();
+    private List<JournalEntry> filteredResults = new();
+    private List<Tag> allTags = new();
+    private bool showFilters = false;
+
+    // Filter states
+    private int? selectedTagId = null;
+    private int? selectedMoodId = null;
+    private DateTime? startDate = null;
+    private DateTime? endDate = null;
+    private string sortBy = "date-desc";
+
+    // Entry metadata cache
+    private Dictionary<int, List<Tag>> entryTags = new();
+    private Dictionary<int, Mood?> entryMoods = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        await LoadTags();
+    }
+
+    private async Task LoadTags()
+    {
+        var tagsResult = await TagService.GetUserTagsAsync();
+        if (tagsResult.Success && tagsResult.Tags != null)
+        {
+            allTags = tagsResult.Tags;
+        }
+    }
+
+    private async Task HandleSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchKeyword))
+        {
+            searchResults.Clear();
+            filteredResults.Clear();
+            return;
+        }
+
+        var result = await JournalService.SearchEntriesAsync(searchKeyword);
+        searchResults = result.Entries;
+        
+        // Load metadata for results
+        entryTags.Clear();
+        entryMoods.Clear();
+        
+        foreach (var entry in searchResults)
+        {
+            var tagsResult = await TagService.GetEntryTagsAsync(entry.EntryId);
+            if (tagsResult.Success && tagsResult.Tags != null)
+            {
+                entryTags[entry.EntryId] = tagsResult.Tags;
+            }
+
+            var moodResult = await MoodService.GetDominantMoodForEntryAsync(entry.EntryId);
+            if (moodResult.Success && moodResult.DominantMood != null)
+            {
+                entryMoods[entry.EntryId] = moodResult.DominantMood;
+            }
+        }
+
+        ApplyFilters();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredResults = searchResults.ToList();
+
+        // Filter by tag
+        if (selectedTagId.HasValue)
+        {
+            filteredResults = filteredResults
+                .Where(e => entryTags.ContainsKey(e.EntryId) && 
+                           entryTags[e.EntryId].Any(t => t.TagId == selectedTagId.Value))
+                .ToList();
+        }
+
+        // Filter by mood
+        if (selectedMoodId.HasValue)
+        {
+            filteredResults = filteredResults
+                .Where(e => entryMoods.ContainsKey(e.EntryId) && 
+                           entryMoods[e.EntryId]?.MoodId == selectedMoodId.Value)
+                .ToList();
+        }
+
+        // Filter by date range
+        if (startDate.HasValue)
+        {
+            filteredResults = filteredResults
+                .Where(e => DateTime.Parse(e.EntryDate) >= startDate.Value)
+                .ToList();
+        }
+
+        if (endDate.HasValue)
+        {
+            filteredResults = filteredResults
+                .Where(e => DateTime.Parse(e.EntryDate) <= endDate.Value)
+                .ToList();
+        }
+
+        // Apply sorting
+        filteredResults = sortBy switch
+        {
+            "date-asc" => filteredResults.OrderBy(e => e.EntryDate).ToList(),
+            "date-desc" => filteredResults.OrderByDescending(e => e.EntryDate).ToList(),
+            "title-asc" => filteredResults.OrderBy(e => e.Title).ToList(),
+            "title-desc" => filteredResults.OrderByDescending(e => e.Title).ToList(),
+            _ => filteredResults.OrderByDescending(e => e.EntryDate).ToList()
+        };
+    }
+
+    private void ClearFilters()
+    {
+        selectedTagId = null;
+        selectedMoodId = null;
+        startDate = null;
+        endDate = null;
+        sortBy = "date-desc";
+        ApplyFilters();
+    }
+
+    private void ToggleFilters()
+    {
+        showFilters = !showFilters;
+    }
+
+    private void NavigateToEntry(int entryId)
+    {
+        Navigation.NavigateTo($"/edit/{entryId}");
+    }
+
+    private string GetExcerpt(string? content)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return "No content";
+
+        return content.Length > 200 
+            ? content.Substring(0, 200) + "..." 
+            : content;
+    }
+
+    private string GetTagStyle(Tag tag)
+    {
+        var bgColor = tag.Color ?? "#D4AF37";
+        return $"background-color: {bgColor}; border-color: {bgColor};";
+    }
+
+    private string GetFormattedDate(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+        {
+            return date.ToString("MMM dd, yyyy");
+        }
+        return dateStr;
+    }
+}
+
+<link rel="stylesheet" href="css/search.css" />
+
+<div class="search-container">
+    <!-- Header -->
+    <header class="search-header">
+        <div class="header-content">
+            <h1>Search</h1>
+            <p>Find entries by content, tags, or date</p>
+        </div>
+    </header>
+
+    <!-- Search Section -->
+    <section class="search-section">
+        <!-- Search Box -->
+        <div class="search-box">
+            <input 
+                type="text" 
+                class="search-input" 
+                placeholder="Search in titles and content..."
+                @bind="searchKeyword"
+                @bind:event="oninput"
+                @onkeyup="@(async (e) => { if (e.Key == "Enter") await HandleSearch(); })" />
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section">
+            <div class="filters-header" @onclick="ToggleFilters">
+                <span class="toggle-icon @(showFilters ? "expanded" : "")">▶</span>
+                <span>Advanced Filters</span>
+            </div>
+
+            @if (showFilters)
+            {
+                <div class="filters-content">
+                    <div class="filter-group">
+                        <label>Tag</label>
+                        <select @bind="selectedTagId" @bind:after="ApplyFilters">
+                            <option value="">All Tags</option>
+                            @foreach (var tag in allTags)
+                            {
+                                <option value="@tag.TagId">@tag.Name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Date Range</label>
+                        <div class="date-range">
+                            <input type="date" @bind="startDate" @bind:after="ApplyFilters" placeholder="From" />
+                            <input type="date" @bind="endDate" @bind:after="ApplyFilters" placeholder="To" />
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button class="btn btn-clear" @onclick="ClearFilters">Clear Filters</button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Results -->
+        @if (!string.IsNullOrWhiteSpace(searchKeyword))
+        {
+            <div class="results-header">
+                <div class="results-count">
+                    Found <strong>@filteredResults.Count</strong> @(filteredResults.Count == 1 ? "entry" : "entries")
+                </div>
+                <div class="sort-group">
+                    <label>Sort by:</label>
+                    <select @bind="sortBy" @bind:after="ApplyFilters">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="title-asc">Title (A-Z)</option>
+                        <option value="title-desc">Title (Z-A)</option>
+                    </select>
+                </div>
+            </div>
+
+            @if (filteredResults.Any())
+            {
+                <div class="entries-grid">
+                    @foreach (var entry in filteredResults)
+                    {
+                        <div class="entry-card" @onclick="@(() => NavigateToEntry(entry.EntryId))">
+                            <div class="entry-header">
+                                <h3 class="entry-title">@(entry.Title ?? "Untitled")</h3>
+                                <span class="entry-date">@GetFormattedDate(entry.EntryDate)</span>
+                            </div>
+                            <p class="entry-excerpt">@GetExcerpt(entry.Content)</p>
+                            <div class="entry-meta">
+                                @if (entryTags.ContainsKey(entry.EntryId))
+                                {
+                                    @foreach (var tag in entryTags[entry.EntryId])
+                                    {
+                                        <span class="tag-chip" style="@GetTagStyle(tag)">@tag.Name</span>
+                                    }
+                                }
+                                @if (entryMoods.TryGetValue(entry.EntryId, out var mood) && mood != null)
+                                {
+                                    <span class="mood-chip">@mood.Name</span>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <p><strong>No results found</strong></p>
+                    <p>Try adjusting your search terms or filters</p>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <p><strong>Start searching</strong></p>
+                <p>Enter keywords to find your journal entries</p>
+            </div>
+        }
+    </section>
+</div>

@@ -1,0 +1,167 @@
+@page "/settings"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject SettingsService SettingsService
+@inject NavigationManager Navigation
+@inject JournalService JournalService
+@inject IJSRuntime JSRuntime
+
+@code {
+    private string theme = "light";
+    private int wordGoal = 200;
+
+    private string? alertMessage = null;
+    private bool isSuccess = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login", true);
+            return;
+        }
+
+        await LoadSettings();
+    }
+
+    private async Task LoadSettings()
+    {
+        theme = await SettingsService.GetThemeAsync();
+        wordGoal = await SettingsService.GetWordGoalAsync();
+    }
+
+    private async Task SaveSettings()
+    {
+        alertMessage = null;
+        var themeResult = await SettingsService.UpdateThemeAsync(theme);
+        var goalResult = await SettingsService.UpdateWordGoalAsync(wordGoal);
+
+        if (themeResult.Success && goalResult.Success)
+        {
+            alertMessage = "Settings saved successfully!";
+            isSuccess = true;
+            await ApplyTheme();
+        }
+        else
+        {
+            alertMessage = themeResult.Success ? goalResult.Message : themeResult.Message;
+            isSuccess = false;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ResetToDefaults()
+    {
+        theme = "light";
+        wordGoal = 200;
+
+        await SaveSettings();
+        alertMessage = "Settings reset to defaults!";
+        isSuccess = true;
+        StateHasChanged();
+    }
+
+    private async Task ApplyTheme()
+    {
+        await JSRuntime.InvokeVoidAsync("setTheme", theme);
+    }
+
+    private void DismissAlert()
+    {
+        alertMessage = null;
+    }
+}
+
+<link rel="stylesheet" href="css/settings.css" />
+
+<div class="settings-container">
+    <!-- Header -->
+    <header class="settings-header">
+        <div class="header-content">
+            <h1>Settings</h1>
+            <p>Customize your journal preferences</p>
+        </div>
+    </header>
+
+    <!-- Settings Content -->
+    <section class="settings-content">
+        @if (!string.IsNullOrEmpty(alertMessage))
+        {
+            <div class="alert @(isSuccess ? "alert-success" : "alert-error")">
+                <span>@alertMessage</span>
+            </div>
+        }
+
+        <!-- Account Section -->
+        <div class="settings-section">
+            <h2 class="section-header">
+                Account Information
+            </h2>
+            <div class="account-info">
+                <div class="info-row">
+                    <span class="info-label">Email</span>
+                    <span class="info-value">@AuthService.CurrentUser?.Username</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Account Created</span>
+                    <span class="info-value">@AuthService.CurrentUser?.CreatedAt.ToString("MMMM dd, yyyy")</span>
+                </div>
+                @if (AuthService.CurrentUser?.LastLogin != null)
+                {
+                    <div class="info-row">
+                        <span class="info-label">Last Login</span>
+                        <span class="info-value">@AuthService.CurrentUser?.LastLogin?.ToString("MMM dd, yyyy hh:mm tt")</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Appearance Section -->
+        <div class="settings-section">
+            <h2 class="section-header">
+                Appearance
+            </h2>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <p class="setting-label">Theme</p>
+                    <p class="setting-description">Choose your preferred color scheme (Ash Teal Green for Dark)</p>
+                </div>
+                <div class="setting-control">
+                    <select class="select-field" @bind="theme">
+                        <option value="light">Light Mode</option>
+                        <option value="dark">Ash Teal Dark</option>
+                        <option value="auto">Use System Settings</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Writing Goals Section -->
+        <div class="settings-section">
+            <h2 class="section-header">
+                Writing Goals
+            </h2>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <p class="setting-label">Daily Word Goal</p>
+                    <p class="setting-description">Target word count for each journal entry</p>
+                </div>
+                <div class="setting-control">
+                    <input type="number" class="input-field" min="0" max="10000" @bind="wordGoal" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <section class="settings-actions">
+            <button class="btn btn-save" @onclick="SaveSettings">
+                Save Changes
+            </button>
+            <button class="btn btn-reset" @onclick="ResetToDefaults">
+                Reset to Defaults
+            </button>
+        </section>
+    </section>
+</div>

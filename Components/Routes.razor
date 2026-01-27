@@ -1,23 +1,10 @@
-﻿@namespace Journal
-
-<ErrorBoundary>
-    <ChildContent>
-        <Router AppAssembly="@typeof(App).Assembly">
-            <Found Context="routeData">
-                <RouteView RouteData="@routeData" />
-            </Found>
-            <NotFound>
-                <h3>Page not found</h3>
-            </NotFound>
-        </Router>
-    </ChildContent>
-
-    <ErrorContent Context="ex">
-        <div style="padding:16px; background:#b91c1c; color:white; font-family: monospace;">
-            <h3>ROOT ERROR</h3>
-            <div><b>@ex.GetType().FullName</b></div>
-            <div style="margin-top:8px;">@ex.Message</div>
-            <pre style="white-space:pre-wrap; margin-top:12px;">@ex.ToString()</pre>
-        </div>
-    </ErrorContent>
-</ErrorBoundary>
+﻿<Router AppAssembly="@typeof(MauiProgram).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(Layout.MainLayout)" />
+        <FocusOnNavigate RouteData="@routeData" Selector="h1" />
+    </Found>
+    <NotFound>
+        <PageTitle>Not found</PageTitle>
+        <p role="alert">Sorry, there's nothing at this address.</p>
+    </NotFound>
+</Router>

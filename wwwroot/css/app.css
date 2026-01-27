@@ -1,0 +1,283 @@
+﻿/* app.css - COMPLETE Fixed Left Sidebar Solution */
+/* ============================================== */
+
+:root {
+    /* Colors */
+    --primary-color: #3b82f6;
+    --accent-color: #8b5cf6;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+
+    /* Sidebar */
+    --sidebar-width: 280px;
+    --sidebar-mobile-width: 260px;
+    --sidebar-top-height: 80px;
+    --bg-glass: rgba(15, 15, 35, 0.98);
+    --bg-glass-hover: rgba(26, 26, 46, 0.98);
+    --border-glass: rgba(255, 255, 255, 0.1);
+    --text-primary: rgba(255, 255, 255, 0.95);
+    --text-secondary: rgba(255, 255, 255, 0.75);
+
+    /* Shadows */
+    --shadow-glass: 4px 0 32px rgba(0, 0, 0, 0.3);
+    --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.12);
+}
+
+/* FIXED SIDEBAR TOP BAR */
+.top-row.navbar.navbar-dark {
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: var(--sidebar-width) !important;
+    height: var(--sidebar-top-height) !important;
+    z-index: 1000 !important;
+    background: linear-gradient(135deg, var(--bg-glass), var(--bg-glass-hover)) !important;
+    backdrop-filter: blur(20px) !important;
+    border-right: 1px solid var(--border-glass) !important;
+    border-bottom: 1px solid var(--border-glass) !important;
+    box-shadow: var(--shadow-glass) !important;
+    padding: 1rem 1.5rem !important;
+}
+
+.navbar-brand {
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    transition: all 0.3s ease !important;
+}
+
+.navbar-brand:hover {
+    transform: scale(1.02) !important;
+}
+
+.nav-logo {
+    height: 42px !important;
+    width: auto !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.4)) !important;
+    transition: all 0.3s ease !important;
+}
+
+.navbar-brand:hover .nav-logo {
+    filter: drop-shadow(0 4px 12px rgba(59, 130, 246, 0.6)) !important;
+    transform: rotate(2deg) !important;
+}
+
+/* FIXED LEFT SIDEBAR - ALWAYS VISIBLE */
+.nav-scrollable {
+    position: fixed !important;
+    left: 0 !important;
+    top: var(--sidebar-top-height) !important;
+    bottom: 0 !important;
+    width: var(--sidebar-width) !important;
+    background: linear-gradient(180deg, var(--bg-glass), var(--bg-glass-hover)) !important;
+    backdrop-filter: blur(30px) !important;
+    border-right: 1px solid var(--border-glass) !important;
+    box-shadow: var(--shadow-glass) !important;
+    overflow-y: auto !important;
+    z-index: 999 !important;
+    scrollbar-width: thin !important;
+    scrollbar-color: rgba(59, 130, 246, 0.3) transparent !important;
+}
+
+/* Custom Scrollbar */
+.nav-scrollable::-webkit-scrollbar {
+    width: 6px !important;
+}
+
+.nav-scrollable::-webkit-scrollbar-track {
+    background: transparent !important;
+}
+
+.nav-scrollable::-webkit-scrollbar-thumb {
+    background: rgba(59, 130, 246, 0.3) !important;
+    border-radius: 3px !important;
+}
+
+.nav-scrollable::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Navigation Items */
+nav.flex-column {
+    padding: 2rem 0 !important;
+    min-height: 100% !important;
+}
+
+.nav-item {
+    padding: 0 1.5rem !important;
+    margin: 0.25rem 0 !important;
+}
+
+.nav-link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 12px !important;
+    padding: 1rem 1.25rem !important;
+    color: var(--text-secondary) !important;
+    text-decoration: none !important;
+    font-weight: 500 !important;
+    font-size: 1rem !important;
+    border-radius: 16px !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+    border: 1px solid transparent !important;
+}
+
+.nav-link::before {
+    content: '' !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 50% !important;
+    width: 4px !important;
+    height: 0 !important;
+    background: linear-gradient(180deg, var(--primary-color), var(--accent-color)) !important;
+    border-radius: 2px !important;
+    transition: all 0.3s ease !important;
+    transform: translateY(-50%) !important;
+}
+
+.nav-link:hover {
+    color: white !important;
+    background: var(--bg-glass-hover) !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    transform: translateX(6px) !important;
+    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25) !important;
+}
+
+.nav-link:hover::before,
+.nav-link.active::before {
+    height: 28px !important;
+}
+
+.nav-link.active {
+    color: white !important;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25), rgba(139, 92, 246, 0.25)) !important;
+    border-color: rgba(59, 130, 246, 0.6) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35) !important;
+}
+
+.nav-divider {
+    border: none !important;
+    height: 1px !important;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent) !important;
+    margin: 2rem 1.5rem !important;
+}
+
+/* UNIVERSAL CONTENT PUSH - ALL PAGES */
+.main,
+.main>div,
+.main-content,
+.layout>.main-content,
+.page {
+    margin-left: var(--sidebar-width) !important;
+    padding-top: var(--sidebar-top-height) !important;
+    padding-left: 2rem !important;
+    min-height: 100vh !important;
+}
+
+/* MOBILE - NARROWER SIDEBAR */
+@media (max-width: 768px) {
+    :root {
+        --sidebar-width: var(--sidebar-mobile-width);
+    }
+
+    .nav-scrollable {
+        width: var(--sidebar-mobile-width) !important;
+    }
+
+    .top-row.navbar.navbar-dark {
+        width: var(--sidebar-mobile-width) !important;
+    }
+
+    .main,
+    .main>div,
+    .main-content,
+    .layout>.main-content,
+    .page {
+        margin-left: var(--sidebar-mobile-width) !important;
+        padding-left: 1.5rem !important;
+    }
+}
+
+/* HIDE HAMBURGER MENU */
+.navbar-toggler {
+    display: none !important;
+}
+
+/* HOME PAGE EXCEPTION - FULL WIDTH */
+.home-container.no-sidebar,
+.no-sidebar,
+.home-container {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* TOP CONTENT BAR (Page title area) */
+.top-row:not(.navbar) {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(20px) !important;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding: 1.5rem 2rem !important;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08) !important;
+    position: sticky !important;
+    top: var(--sidebar-top-height) !important;
+    z-index: 900 !important;
+    margin-left: var(--sidebar-width) !important;
+    width: calc(100% - var(--sidebar-width)) !important;
+}
+
+/* MOBILE TOP BAR */
+@media (max-width: 768px) {
+    .top-row:not(.navbar) {
+        margin-left: var(--sidebar-mobile-width) !important;
+        width: calc(100% - var(--sidebar-mobile-width)) !important;
+        padding: 1rem 1.5rem !important;
+    }
+}
+
+/* CONTENT AREA */
+.content {
+    padding: 2rem !important;
+    min-height: calc(100vh - 200px) !important;
+}
+
+/* FOOTER */
+.footer {
+    background: rgba(255, 255, 255, 0.9) !important;
+    border-top: 1px solid rgba(0, 0, 0, 0.05) !important;
+    padding: 2rem !important;
+    margin-top: auto !important;
+}
+
+/* UTILITY CLASSES */
+.no-sidebar-page {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+    padding-top: 0 !important;
+}
+
+/* HIGH CONTRAST ACCESSIBILITY */
+@media (prefers-contrast: high) {
+    .nav-link {
+        border-color: rgba(255, 255, 255, 0.4) !important;
+    }
+
+    .nav-divider {
+        background: rgba(255, 255, 255, 0.4) !important;
+    }
+}
+
+/* PERFECT RESPONSIVE BREAKPOINTS */
+@media (max-width: 480px) {
+    .content {
+        padding: 1rem !important;
+    }
+
+    .top-row:not(.navbar) {
+        padding: 1rem !important;
+    }
+}

@@ -1,0 +1,394 @@
+@page "/calendar"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject TagService TagService
+@inject MoodService MoodService
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/calendar.css" />
+
+<div class="calendar-container">
+    <div class="header">
+        <h2> Calendar </h2>
+        <div class="filter-actions">
+            <div class="chips-row">
+                @foreach (var tag in availableTags)
+                {
+                    <span class="tag-chip @(filterTagIds.Contains(tag.TagId) ? "selected" : "")"
+                          style="@GetTagStyle(tag)"
+                          @onclick="() => ToggleFilterTag(tag.TagId)">
+                        @tag.Name
+                    </span>
+                }
+            </div>
+            <div class="chips-row mood-chips">
+                @foreach (var mood in availableMoods)
+                {
+                    <span class="mood-chip @(filterMoodIds.Contains(mood.MoodId) ? "selected" : "")" 
+                          @onclick="() => ToggleFilterMood(mood.MoodId)">
+                        @mood.Name
+                    </span>
+                }
+            </div>
+            <div class="filter-buttons">
+                <button class="btn btn-secondary" @onclick="ClearFilters">Clear Filters</button>
+                <span class="filter-summary">Showing <strong>@filteredEntries.Count</strong> / <strong>@monthEntries.Count</strong> entries this month</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="calendar-controls">
+        <button class="btn btn-nav" @onclick="PreviousMonth">← Previous</button>
+        <h3 class="current-month">@currentDate.ToString("MMMM yyyy")</h3>
+        <button class="btn btn-nav" @onclick="NextMonth">Next →</button>
+    </div>
+
+    <div class="calendar">
+        <div class="weekday-headers">
+            <div class="weekday">Sun</div>
+            <div class="weekday">Mon</div>
+            <div class="weekday">Tue</div>
+            <div class="weekday">Wed</div>
+            <div class="weekday">Thu</div>
+            <div class="weekday">Fri</div>
+            <div class="weekday">Sat</div>
+        </div>
+
+        <div class="calendar-grid">
+            @foreach (var day in calendarDays)
+            {
+                <div class="calendar-day @GetDayClass(day)" @onclick="() => SelectDay(day)">
+                    <div class="day-number">@day.DayNumber</div>
+                    @if (day.HasEntry)
+                    {
+                        <div class="entry-indicator-dot"></div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (selectedEntry != null)
+    {
+        <div class="entry-preview">
+            <div class="preview-header">
+                <h3>@(string.IsNullOrEmpty(selectedEntry.Title) ? "Entry Preview" : selectedEntry.Title)</h3>
+                <button class="btn btn-primary" @onclick="EditSelectedEntry">Edit</button>
+            </div>
+            <div class="preview-date">@FormatDate(selectedEntry.EntryDate)</div>
+            <div class="preview-content">@selectedEntry.Content</div>
+            <div class="entry-meta">
+                <div class="tag-row">
+                    @foreach (var tag in GetEntryTags(selectedEntry.EntryId))
+                    {
+                        <span class="tag-chip small" style="@GetTagStyle(tag)">@tag.Name</span>
+                    }
+                </div>
+                <div class="mood-row">
+                    @foreach (var mood in GetEntryMoods(selectedEntry.EntryId))
+                    {
+                        <span class="mood-chip small">@mood.Name</span>
+                    }
+                </div>
+            </div>
+            <div class="preview-footer">
+                <span>@selectedEntry.WordCount words</span>
+                <span>Updated @selectedEntry.UpdatedAt.ToString("MMM d, yyyy h:mm tt")</span>
+            </div>
+        </div>
+    }
+    else if (selectedDate != null && !HasEntryOnDate(selectedDate.Value))
+    {
+        <div class="entry-preview">
+            <div class="preview-header">
+                <h3>No entry for this day</h3>
+                <button class="btn btn-primary" @onclick="CreateEntryForDate">Create Entry</button>
+            </div>
+            <p>Start journaling for @selectedDate.Value.ToString("MMMM d, yyyy")</p>
+        </div>
+    }
+</div>
+@code {
+    private DateTime currentDate = DateTime.Now;
+    private List<CalendarDay> calendarDays = new();
+    private List<JournalEntry> monthEntries = new();
+    private List<JournalEntry> filteredEntries = new();
+    private JournalEntry? selectedEntry;
+    private DateTime? selectedDate;
+
+    private List<Tag> availableTags = new();
+    private List<Mood> availableMoods = new();
+    private Dictionary<int, List<Tag>> entryTags = new();
+    private Dictionary<int, List<Mood>> entryMoods = new();
+    private HashSet<int> filterTagIds = new();
+    private HashSet<int> filterMoodIds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is authenticated
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        var tagsResult = await TagService.GetUserTagsAsync();
+        if (tagsResult.Success && tagsResult.Tags != null)
+        {
+            availableTags = tagsResult.Tags;
+        }
+
+        var moodsResult = await MoodService.GetAllMoodsAsync();
+        if (moodsResult.Success && moodsResult.Moods != null)
+        {
+            availableMoods = moodsResult.Moods;
+        }
+
+        await LoadCalendar();
+    }
+
+    private async Task LoadCalendar()
+    {
+        // Get entries for current month
+        monthEntries = await JournalService.GetEntriesByMonthAsync(currentDate.Year, currentDate.Month);
+
+        await LoadEntryAssociations();
+        ApplyFilters();
+        RebuildCalendarGrid();
+    }
+
+    private async Task PreviousMonth()
+    {
+        currentDate = currentDate.AddMonths(-1);
+        selectedEntry = null;
+        selectedDate = null;
+        await LoadCalendar();
+    }
+
+    private async Task NextMonth()
+    {
+        currentDate = currentDate.AddMonths(1);
+        selectedEntry = null;
+        selectedDate = null;
+        await LoadCalendar();
+    }
+
+    private void SelectDay(CalendarDay day)
+    {
+        if (!day.IsCurrentMonth)
+            return;
+
+        selectedDate = day.Date;
+        selectedEntry = filteredEntries.FirstOrDefault(e => e.EntryDate == day.Date.ToString("yyyy-MM-dd"));
+    }
+
+    private string GetDayClass(CalendarDay day)
+    {
+        var classes = new List<string>();
+
+        if (!day.IsCurrentMonth)
+            classes.Add("other-month");
+
+        if (day.Date.Date == DateTime.Now.Date)
+            classes.Add("today");
+
+        if (day.HasEntry)
+            classes.Add("has-entry");
+
+        if (selectedDate.HasValue && day.Date.Date == selectedDate.Value.Date)
+            classes.Add("selected");
+
+        return string.Join(" ", classes);
+    }
+
+    private bool HasEntryOnDate(DateTime date)
+    {
+        return filteredEntries.Any(e => e.EntryDate == date.ToString("yyyy-MM-dd"));
+    }
+
+    private void EditSelectedEntry()
+    {
+        if (selectedEntry != null)
+        {
+            Navigation.NavigateTo($"/journal/edit/{selectedEntry.EntryId}");
+        }
+    }
+
+    private void CreateEntryForDate()
+    {
+        if (selectedDate.HasValue && selectedDate.Value.Date == DateTime.Now.Date)
+        {
+            Navigation.NavigateTo("/today");
+        }
+        else
+        {
+            // For past/future dates, redirect to today's entry page
+            // In a more complete implementation, you'd allow creating entries for any date
+            Navigation.NavigateTo("/today");
+        }
+    }
+
+    private string FormatDate(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+        {
+            return date.ToString("MMMM d, yyyy");
+        }
+        return dateStr;
+    }
+
+    private async Task LoadEntryAssociations()
+    {
+        entryTags.Clear();
+        entryMoods.Clear();
+
+        foreach (var entry in monthEntries)
+        {
+            var tagsResult = await TagService.GetEntryTagsAsync(entry.EntryId);
+            if (tagsResult.Success && tagsResult.Tags != null)
+            {
+                entryTags[entry.EntryId] = tagsResult.Tags;
+            }
+            else
+            {
+                entryTags[entry.EntryId] = new List<Tag>();
+            }
+
+            var moodsResult = await MoodService.GetEntryMoodsAsync(entry.EntryId);
+            if (moodsResult.Success && moodsResult.EntryMoods != null)
+            {
+                var moods = moodsResult.EntryMoods
+                    .Select(em => availableMoods.FirstOrDefault(m => m.MoodId == em.MoodId))
+                    .Where(m => m != null)
+                    .Cast<Mood>()
+                    .ToList();
+                entryMoods[entry.EntryId] = moods;
+            }
+            else
+            {
+                entryMoods[entry.EntryId] = new List<Mood>();
+            }
+        }
+    }
+
+    private void ApplyFilters()
+    {
+        IEnumerable<JournalEntry> query = monthEntries;
+
+        if (filterTagIds.Any())
+        {
+            query = query.Where(e => entryTags.TryGetValue(e.EntryId, out var tags) && filterTagIds.All(id => tags.Any(t => t.TagId == id)));
+        }
+
+        if (filterMoodIds.Any())
+        {
+            query = query.Where(e => entryMoods.TryGetValue(e.EntryId, out var moods) && filterMoodIds.All(id => moods.Any(m => m.MoodId == id)));
+        }
+
+        filteredEntries = query.ToList();
+    }
+
+    private void ClearFilters()
+    {
+        filterTagIds.Clear();
+        filterMoodIds.Clear();
+        ApplyFilters();
+        RebuildCalendarGrid();
+    }
+
+    private void ToggleFilterTag(int tagId)
+    {
+        if (filterTagIds.Contains(tagId))
+            filterTagIds.Remove(tagId);
+        else
+            filterTagIds.Add(tagId);
+        ApplyFilters();
+        RebuildCalendarGrid();
+    }
+
+    private void ToggleFilterMood(int moodId)
+    {
+        if (filterMoodIds.Contains(moodId))
+            filterMoodIds.Remove(moodId);
+        else
+            filterMoodIds.Add(moodId);
+        ApplyFilters();
+        RebuildCalendarGrid();
+    }
+
+    private IEnumerable<Tag> GetEntryTags(int entryId)
+    {
+        return entryTags.TryGetValue(entryId, out var tags) ? tags : Enumerable.Empty<Tag>();
+    }
+
+    private IEnumerable<Mood> GetEntryMoods(int entryId)
+    {
+        return entryMoods.TryGetValue(entryId, out var moods) ? moods : Enumerable.Empty<Mood>();
+    }
+
+    private string GetTagStyle(Tag tag)
+    {
+        var bgColor = tag.Color ?? "#D4AF37";
+        return $"background-color: {bgColor}; border-color: {bgColor};";
+    }
+
+
+
+    private void RebuildCalendarGrid()
+    {
+        // Regenerate day markers with current filters
+        var firstDayOfMonth = new DateTime(currentDate.Year, currentDate.Month, 1);
+        var lastDayOfMonth = firstDayOfMonth.AddMonths(1).AddDays(-1);
+        var firstDayOfWeek = (int)firstDayOfMonth.DayOfWeek;
+
+        calendarDays.Clear();
+
+        var prevMonth = firstDayOfMonth.AddDays(-firstDayOfWeek);
+        for (int i = 0; i < firstDayOfWeek; i++)
+        {
+            var date = prevMonth.AddDays(i);
+            calendarDays.Add(new CalendarDay
+            {
+                Date = date,
+                IsCurrentMonth = false,
+                HasEntry = false
+            });
+        }
+
+        for (int day = 1; day <= lastDayOfMonth.Day; day++)
+        {
+            var date = new DateTime(currentDate.Year, currentDate.Month, day);
+            var hasEntry = filteredEntries.Any(e => e.EntryDate == date.ToString("yyyy-MM-dd"));
+
+            calendarDays.Add(new CalendarDay
+            {
+                Date = date,
+                IsCurrentMonth = true,
+                HasEntry = hasEntry
+            });
+        }
+
+        var remainingDays = 42 - calendarDays.Count;
+        var nextMonth = lastDayOfMonth.AddDays(1);
+        for (int i = 0; i < remainingDays; i++)
+        {
+            var date = nextMonth.AddDays(i);
+            calendarDays.Add(new CalendarDay
+            {
+                Date = date,
+                IsCurrentMonth = false,
+                HasEntry = false
+            });
+        }
+    }
+
+    private class CalendarDay
+    {
+        public DateTime Date { get; set; }
+        public int DayNumber => Date.Day;
+        public bool IsCurrentMonth { get; set; }
+        public bool HasEntry { get; set; }
+    }
+}

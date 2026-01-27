@@ -1,0 +1,128 @@
+﻿@page "/"
+@using global::Journal.Services
+@using global::Journal.Models
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@code {
+    // If user is already logged in, redirect to dashboard
+    protected override void OnInitialized()
+    {
+        if (AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/dashboard", true);
+        }
+    }
+}
+
+<link rel="stylesheet" href="css/home.css" />
+
+<div class="home-container">
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-logo-container">
+            <img src="sachet.png" alt="Journals Logo" class="home-logo" />
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-secondary" @onclick="@(() => Navigation.NavigateTo("/login"))">
+                Login
+            </button>
+            <button class="btn btn-primary" @onclick="@(() => Navigation.NavigateTo("/signup"))">
+                Sign Up
+            </button>
+        </div>
+    </nav>
+    <!-- Hero Section -->
+    <section class="hero">
+        <h2>Your Personal Space for Thoughts, Memories, and Reflections</h2>
+        <p>Start journaling today and discover the power of daily reflection</p>
+        <a class="cta-button" href="/signup"> Lets Go for Free</a>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <h2>Why Journal with Us?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <h3>Daily Journaling</h3>
+                <p>Write one entry per day with rich text formatting</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Mood Tracking</h3>
+                <p>Track your emotions with detailed mood categorization</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Smart Tagging</h3>
+                <p>Organize entries with pre-built tags and custom labels</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Calendar View</h3>
+                <p>Navigate through your entries with a visual calendar</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Search & Filter</h3>
+                <p>Find entries by content, date, moods, or tags</p>
+            </div>
+
+            <div class="feature-card">
+                <h3>Analytics Dashboard</h3>
+                <p>Visualize your journaling trends and insights</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Navigation Section -->
+    <section class="main-navigation">
+        <h2>Application Features</h2>
+        <div class="nav-grid">
+            <div class="nav-card">
+                <h4>Today's Entry</h4>
+                <p>Write or edit your journal entry for today</p>
+            </div>
+            <div class="nav-card">
+                <h4>All Entries</h4>
+                <p>Browse all your journal entries in a paginated view</p>
+            </div>
+            <div class="nav-card">
+                <h4>Calendar</h4>
+                <p>Navigate entries through calendar view</p>
+            </div>
+            <div class="nav-card">
+                <h4>Search</h4>
+                <p>Search and filter your entries</p>
+            </div>
+            <div class="nav-card">
+                <h4>Analytics</h4>
+                <p>View insights about your journaling habits</p>
+            </div>
+            <div class="nav-card">
+                <h4>Settings</h4>
+                <p>Customize your journal preferences</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="cta-section">
+        <h2>Start Your Journaling Journey Today</h2>
+        <p>Join thousands of users who have made journaling a daily habit</p>
+        <a class="cta-button" href="/signup">Get Started Free</a>
+    </section>
+
+    <style>
+        .home-logo {
+            height: 50px;
+            width: auto;
+            object-fit: contain;
+        }
+    </style>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2026 Journals. All rights reserved by Sachet.</p>
+    </footer>
+</div>

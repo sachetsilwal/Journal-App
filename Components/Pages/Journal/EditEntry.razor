@@ -1,0 +1,552 @@
+@page "/journal/edit/{EntryId:int}"
+@using global::Journal.Services
+@using global::Journal.Models
+@using Microsoft.AspNetCore.Components.Web
+@using Markdig
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject TagService TagService
+@inject MoodService MoodService
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<link rel="stylesheet" href="css/edit-entry.css" />
+
+<div class="edit-entry-container">
+    @if (isLoading)
+    {
+        <div class="loading">Loading entry...</div>
+    }
+    else if (entry == null)
+    {
+        <div class="error">
+            <h3>Entry not found</h3>
+            <button class="btn btn-primary" @onclick="GoBack">Go Back</button>
+        </div>
+    }
+    else
+    {
+        <div class="header">
+            <h2>Edit Entry</h2>
+            <p class="date">@FormatDate(entry.EntryDate)</p>
+        </div>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="alert @(isSuccess ? "alert-success" : "alert-danger")">
+                @message
+            </div>
+        }
+
+        <div class="entry-form">
+            <div class="form-group">
+                <label>Title (Optional)</label>
+                <input type="text" class="form-control" @bind="title" placeholder="Give your entry a title..." />
+            </div>
+
+            <div class="form-group">
+                <label>Category (Optional)</label>
+                <select class="form-control" @bind="categoryId">
+                    <option value="">-- Select Category --</option>
+                    @foreach (var category in categories)
+                    {
+                        <option value="@category.CategoryId">@category.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <div class="editor-header">
+                    <label>Content *</label>
+                    <div class="editor-tabs">
+                        <button class="tab-btn @(!isPreview ? "active" : "")" @onclick="() => isPreview = false">Edit</button>
+                        <button class="tab-btn @(isPreview ? "active" : "")" @onclick="() => isPreview = true">Preview</button>
+                    </div>
+                </div>
+
+                @if (!isPreview)
+                {
+                    <div class="toolbar">
+                        <button type="button" class="tool-btn" @onclick='() => InsertMarkdown("**", "**")' title="Bold"><strong>B</strong></button>
+                        <button type="button" class="tool-btn" @onclick='() => InsertMarkdown("*", "*")' title="Italic"><em>I</em></button>
+                        <button type="button" class="tool-btn" @onclick='() => InsertMarkdown("### ", "")' title="Heading">H3</button>
+                        <button type="button" class="tool-btn" @onclick='() => InsertMarkdown("- ", "")' title="List">List</button>
+                        <button type="button" class="tool-btn" @onclick='() => InsertMarkdown("> ", "")' title="Quote">Quote</button>
+                    </div>
+                    <textarea id="content-editor" class="form-control content-area" @bind="content" @bind:event="oninput" 
+                              placeholder="Write about your day... (Markdown supported)" rows="15"></textarea>
+                }
+                else
+                {
+                    <div class="markdown-preview">
+                        @((MarkupString)Markdown.ToHtml(content ?? ""))
+                    </div>
+                }
+                <small class="word-count">@GetWordCount() words</small>
+            </div>
+
+            <div class="form-group">
+                <label>Tags</label>
+                <div class="tags-section">
+                    <div class="tag-input-group">
+                        <input type="text" class="form-control" @bind="newTagName" 
+                               placeholder="Add a new tag..." @onkeypress="HandleTagKeyPress" />
+                        <input type="color" class="color-picker" @bind="newTagColor" title="Tag color" />
+                        <button class="btn btn-sm btn-outline" @onclick="CreateNewTag" disabled="@string.IsNullOrWhiteSpace(newTagName)">
+                            Add Tag
+                        </button>
+                    </div>
+                    
+                    <div class="available-tags">
+                        @foreach (var tag in availableTags)
+                        {
+                            <span class="tag-chip @(selectedTagIds.Contains(tag.TagId) ? "selected" : "")" 
+                                  style="@GetTagStyle(tag)"
+                                  @onclick="() => ToggleTag(tag.TagId)">
+                                @tag.Name
+                            </span>
+                        }
+                    </div>
+
+                    @if (selectedTagIds.Any())
+                    {
+                        <div class="selected-tags-preview">
+                            <strong>Selected:</strong>
+                            @foreach (var tagId in selectedTagIds)
+                            {
+                                var tag = availableTags.FirstOrDefault(t => t.TagId == tagId);
+                                if (tag != null)
+                                {
+                                    <span class="tag-badge" style="@GetTagStyle(tag)">
+                                        @tag.Name
+                                        <button class="remove-btn" @onclick="() => ToggleTag(tagId)">×</button>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>How are you feeling?</label>
+                <div class="moods-section">
+                    <!-- Primary Mood Selection -->
+                    <div class="mood-category">
+                        <label class="sub-label">Primary Mood (Select One)</label>
+                        <div class="mood-grid">
+                            @foreach (var mood in availableMoods)
+                            {
+                                <div class="mood-item @(selectedPrimaryMoodId == mood.MoodId ? "selected primary" : "")"
+                                     @onclick="() => SetPrimaryMood(mood.MoodId)">
+                                    <div class="mood-name">@mood.Name</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Secondary Mood Selection -->
+                    <div class="mood-category mt-3">
+                        <label class="sub-label">Secondary Moods (Max 2)</label>
+                        <div class="mood-grid">
+                            @foreach (var mood in availableMoods)
+                            {
+                                var isSelected = selectedSecondaryMoodIds.Contains(mood.MoodId);
+                                var isDisabled = !isSelected && selectedSecondaryMoodIds.Count >= 2;
+                                var isPrimary = selectedPrimaryMoodId == mood.MoodId;
+                                
+                                @if (!isPrimary) 
+                                {
+                                    <div class="mood-item @(isSelected ? "selected secondary" : "") @(isDisabled ? "disabled" : "")"
+                                         @onclick="() => ToggleSecondaryMood(mood.MoodId)">
+                                        <div class="mood-name">@mood.Name</div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    @if (selectedPrimaryMoodId.HasValue || selectedSecondaryMoodIds.Any())
+                    {
+                        <div class="selected-moods-preview">
+                            <strong>Summary:</strong>
+                            @if (selectedPrimaryMoodId.HasValue)
+                            {
+                                var pMood = availableMoods.FirstOrDefault(m => m.MoodId == selectedPrimaryMoodId);
+                                if (pMood != null)
+                                {
+                                    <span class="mood-badge primary-badge">
+                                        Primary: @pMood.Name
+                                    </span>
+                                }
+                            }
+                            @foreach (var moodId in selectedSecondaryMoodIds)
+                            {
+                                var mood = availableMoods.FirstOrDefault(m => m.MoodId == moodId);
+                                if (mood != null)
+                                {
+                                    <span class="mood-badge secondary-badge">
+                                        @mood.Name
+                                        <button class="remove-btn" @onclick="() => ToggleSecondaryMood(moodId)">×</button>
+                                    </span>
+                                }
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" @onclick="UpdateEntry" disabled="@isSaving">
+                    @(isSaving ? "Updating..." : "Update Entry")
+                </button>
+
+                <button class="btn btn-danger" @onclick="DeleteEntry" disabled="@isSaving">
+                    Delete Entry
+                </button>
+
+                <button class="btn btn-secondary" @onclick="GoBack">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+    .editor-tabs {
+        display: flex;
+        gap: 5px;
+    }
+    .tab-btn {
+        background: none;
+        border: 1px solid #ccc;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .tab-btn.active {
+        background-color: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    .toolbar {
+        display: flex;
+        gap: 5px;
+        padding: 5px;
+        background-color: #f5f5f5;
+        border: 1px solid #ddd;
+        border-bottom: none;
+        border-top-left-radius: 4px;
+        border-top-right-radius: 4px;
+    }
+    .tool-btn {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 2px 8px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+    .markdown-preview {
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-height: 300px;
+        background-color: white;
+        overflow-y: auto;
+    }
+    /* Simple markdown reset */
+    .markdown-preview h1, .markdown-preview h2, .markdown-preview h3 { margin-top: 0; }
+    .markdown-preview ul { padding-left: 20px; }
+</style>
+
+@code {
+    [Parameter]
+    public int EntryId { get; set; }
+
+    private JournalEntry? entry;
+    private string title = string.Empty;
+    private string content = string.Empty;
+    private string? categoryId = null;
+    private List<Category> categories = new();
+    private bool isLoading = true;
+    private bool isSaving = false;
+    private string message = string.Empty;
+    private bool isSuccess = false;
+    private bool isPreview = false;
+
+    // Tags
+    private List<Tag> availableTags = new();
+    private HashSet<int> selectedTagIds = new();
+    private string newTagName = string.Empty;
+    private string newTagColor = "#D4AF37";
+
+    // Moods
+    private List<Mood> availableMoods = new();
+    private int? selectedPrimaryMoodId = null;
+    private HashSet<int> selectedSecondaryMoodIds = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Check if user is authenticated
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        await LoadEntry();
+        categories = await JournalService.GetCategoriesAsync();
+
+        var tagsResult = await TagService.GetUserTagsAsync();
+        if (tagsResult.Success && tagsResult.Tags != null)
+        {
+            availableTags = tagsResult.Tags;
+        }
+
+        var moodsResult = await MoodService.GetAllMoodsAsync();
+        if (moodsResult.Success && moodsResult.Moods != null)
+        {
+            availableMoods = moodsResult.Moods;
+        }
+    }
+
+    private async Task InsertMarkdown(string before, string after)
+    {
+        await JSRuntime.InvokeVoidAsync("editor.insertTextAtCursor", "content-editor", before, after);
+    }
+
+    private async Task LoadEntry()
+    {
+        isLoading = true;
+        entry = await JournalService.GetEntryByIdAsync(EntryId);
+        
+        if (entry != null)
+        {
+            title = entry.Title ?? string.Empty;
+            content = entry.Content;
+            categoryId = entry.CategoryId?.ToString();
+
+            var entryTagsResult = await TagService.GetEntryTagsAsync(entry.EntryId);
+            if (entryTagsResult.Success && entryTagsResult.Tags != null)
+            {
+                selectedTagIds = entryTagsResult.Tags.Select(t => t.TagId).ToHashSet();
+            }
+
+            var entryMoodsResult = await MoodService.GetEntryMoodsAsync(entry.EntryId);
+            if (entryMoodsResult.Success && entryMoodsResult.EntryMoods != null)
+            {
+                var primary = entryMoodsResult.EntryMoods.FirstOrDefault(em => em.IsPrimary);
+                if (primary != null) selectedPrimaryMoodId = primary.MoodId;
+                
+                selectedSecondaryMoodIds = entryMoodsResult.EntryMoods
+                    .Where(em => !em.IsPrimary)
+                    .Select(em => em.MoodId)
+                    .ToHashSet();
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private int GetWordCount()
+    {
+        if (string.IsNullOrWhiteSpace(content))
+            return 0;
+
+        var words = content.Split(new[] { ' ', '\t', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+        return words.Length;
+    }
+
+    private void ToggleTag(int tagId)
+    {
+        if (selectedTagIds.Contains(tagId))
+            selectedTagIds.Remove(tagId);
+        else
+            selectedTagIds.Add(tagId);
+    }
+
+    private void SetPrimaryMood(int moodId)
+    {
+        selectedPrimaryMoodId = moodId;
+        // If promoted from secondary, remove from secondary
+        if (selectedSecondaryMoodIds.Contains(moodId))
+        {
+            selectedSecondaryMoodIds.Remove(moodId);
+        }
+    }
+
+    private void ToggleSecondaryMood(int moodId)
+    {
+        if (selectedSecondaryMoodIds.Contains(moodId))
+        {
+            selectedSecondaryMoodIds.Remove(moodId);
+        }
+        else
+        {
+            if (selectedSecondaryMoodIds.Count < 2)
+            {
+                selectedSecondaryMoodIds.Add(moodId);
+            }
+        }
+    }
+
+    private async Task CreateNewTag()
+    {
+        if (string.IsNullOrWhiteSpace(newTagName))
+            return;
+
+        var result = await TagService.CreateTagAsync(newTagName.Trim(), newTagColor);
+        
+        if (result.Success)
+        {
+            var tagsResult = await TagService.GetUserTagsAsync();
+            if (tagsResult.Success && tagsResult.Tags != null)
+            {
+                availableTags = tagsResult.Tags;
+                var newTag = availableTags.FirstOrDefault(t => t.Name == newTagName.Trim());
+                if (newTag != null)
+                {
+                    selectedTagIds.Add(newTag.TagId);
+                }
+            }
+
+            newTagName = string.Empty;
+            newTagColor = "#D4AF37";
+        }
+        else
+        {
+            message = result.Message;
+            isSuccess = false;
+        }
+    }
+
+    private async Task HandleTagKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await CreateNewTag();
+        }
+    }
+
+    private string GetTagStyle(Tag tag)
+    {
+        var bgColor = tag.Color ?? "#D4AF37";
+        return $"background-color: {bgColor}; border-color: {bgColor};";
+    }
+
+    private async Task UpdateEntry()
+    {
+        if (selectedPrimaryMoodId == null)
+        {
+            message = "Please select a primary mood.";
+            return;
+        }
+
+        isSaving = true;
+        message = string.Empty;
+
+        int? catId = null;
+        if (!string.IsNullOrEmpty(categoryId) && int.TryParse(categoryId, out int parsedCatId))
+        {
+            catId = parsedCatId;
+        }
+
+        var result = await JournalService.UpdateEntryAsync(EntryId, title, content, catId);
+
+        isSuccess = result.Success;
+        message = result.Message;
+
+        if (result.Success)
+        {
+            var existingTagsResult = await TagService.GetEntryTagsAsync(EntryId);
+            var existingTagIds = existingTagsResult.Success && existingTagsResult.Tags != null 
+                ? existingTagsResult.Tags.Select(t => t.TagId).ToHashSet() 
+                : new HashSet<int>();
+
+            foreach (var tagId in selectedTagIds.Except(existingTagIds))
+            {
+                await TagService.AddTagToEntryAsync(EntryId, tagId);
+            }
+
+            foreach (var tagId in existingTagIds.Except(selectedTagIds))
+            {
+                await TagService.RemoveTagFromEntryAsync(EntryId, tagId);
+            }
+
+            // --- Save Moods ---
+            // Clear all existing moods
+            var existingMoodsResult = await MoodService.GetEntryMoodsAsync(EntryId);
+            if (existingMoodsResult.Success && existingMoodsResult.EntryMoods != null)
+            {
+                foreach (var m in existingMoodsResult.EntryMoods)
+                {
+                    await MoodService.RemoveMoodFromEntryAsync(EntryId, m.MoodId);
+                }
+            }
+
+            // Add Primary
+            if (selectedPrimaryMoodId.HasValue)
+            {
+                await MoodService.AddMoodToEntryAsync(EntryId, selectedPrimaryMoodId.Value, 10, true);
+            }
+
+            // Add Secondary
+            foreach (var moodId in selectedSecondaryMoodIds)
+            {
+                await MoodService.AddMoodToEntryAsync(EntryId, moodId, 5, false);
+            }
+
+            await LoadEntry(); // Reload to get updated timestamps and selections
+        }
+
+        isSaving = false;
+    }
+
+    private async Task DeleteEntry()
+    {
+        if (!await ConfirmDelete())
+            return;
+
+        isSaving = true;
+        var result = await JournalService.DeleteEntryAsync(EntryId);
+
+        if (result.Success)
+        {
+            Navigation.NavigateTo("/entries");
+        }
+        else
+        {
+            isSuccess = false;
+            message = result.Message;
+            isSaving = false;
+        }
+    }
+
+    private async Task<bool> ConfirmDelete()
+    {
+        // Simple confirmation (in production, use a modal)
+        return await Task.FromResult(true);
+    }
+
+    private void GoBack()
+    {
+        Navigation.NavigateTo("/entries");
+    }
+
+    private string FormatDate(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+        {
+            return date.ToString("MMMM d, yyyy");
+        }
+        return dateStr;
+    }
+}

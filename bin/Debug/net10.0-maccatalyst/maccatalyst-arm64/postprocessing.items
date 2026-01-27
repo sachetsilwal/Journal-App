@@ -8,9 +8,9 @@
       <dSYMSourcePathExists>false</dSYMSourcePathExists>
       <NoSymbolStrip>true</NoSymbolStrip>
       <dSYMInfoPlistRelativePath>Journal.app.dSYM\Contents\Info.plist</dSYMInfoPlistRelativePath>
-      <SymbolFile>/Users/sachetshilwal/Documents/Journal/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/mtouch-symbols.list</SymbolFile>
+      <SymbolFile>/Users/sachetshilwal/Desktop/Journal-App/obj/Debug/net10.0-maccatalyst/maccatalyst-arm64/mtouch-symbols.list</SymbolFile>
       <DSymName>Journal.app.dSYM</DSymName>
-      <SourceProjectPath>/Users/sachetshilwal/Documents/Journal</SourceProjectPath>
+      <SourceProjectPath>/Users/sachetshilwal/Desktop/Journal-App</SourceProjectPath>
       <IsXPCService></IsXPCService>
     </_PostProcessingItem>
   </ItemGroup>

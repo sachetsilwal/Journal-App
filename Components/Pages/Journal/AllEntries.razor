@@ -1,0 +1,339 @@
+@page "/entries"
+@using global::Journal.Services
+@using global::Journal.Models
+@using Microsoft.AspNetCore.Components.Web
+@using Markdig
+@inject AuthService AuthService
+@inject JournalService JournalService
+@inject TagService TagService
+@inject MoodService MoodService
+@inject NavigationManager Navigation
+
+<link rel="stylesheet" href="css/all-entries.css" />
+
+<div class="all-entries-container">
+
+    <!-- Header & Actions -->
+    <div class="header">
+        <h2>All Journal Entries</h2>
+        <div class="header-actions">
+            <input type="search" class="search-box" placeholder="Search title or content..." @bind="searchText"
+                @bind:after="ApplyFilters" />
+
+            <button class="btn btn-secondary" @onclick="GoToPrintView" title="Export all to PDF">
+                <i class="fas fa-file-pdf"></i> Export
+            </button>
+
+            <button class="btn btn-primary" @onclick="CreateNewEntry">
+                <i class="fas fa-plus"></i> New Entry
+            </button>
+        </div>
+    </div>
+
+    <!-- Filters Panel -->
+    <div class="filters-panel">
+        <!-- Category -->
+        <div class="filter-group">
+            <label>Category</label>
+            <select class="form-control" @bind="FilterCategoryId" @bind:after="ApplyFilters">
+                <option value="">All Categories</option>
+                @foreach (var category in categories)
+                {
+                    <option value="@category.CategoryId">@category.Name</option>
+                }
+            </select>
+        </div>
+
+        <!-- Date Range -->
+        <div class="filter-group">
+            <label>Date Range</label>
+            <div class="date-range">
+                <input type="date" class="form-control" @bind="StartDate" @bind:after="ApplyFilters" />
+                <span class="date-separator">to</span>
+                <input type="date" class="form-control" @bind="EndDate" @bind:after="ApplyFilters" />
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="filter-group">
+            <label>Tags</label>
+            <div class="chips-row">
+                @foreach (var tag in availableTags)
+                {
+                    <span class="tag-chip @(filterTagIds.Contains(tag.TagId) ? "selected" : "")" style="@GetTagStyle(tag)"
+                        @onclick="() => ToggleFilterTag(tag.TagId)">
+                        @tag.Name
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- Moods -->
+        <div class="filter-group">
+            <label>Moods</label>
+            <div class="chips-row mood-chips">
+                @foreach (var mood in availableMoods)
+                {
+                    <span class="mood-chip @(filterMoodIds.Contains(mood.MoodId) ? "selected" : "")"
+                        @onclick="() => ToggleFilterMood(mood.MoodId)">
+                        @mood.Name
+                    </span>
+                }
+            </div>
+        </div>
+
+        <!-- Clear Filters -->
+        <div class="filter-actions">
+            <button class="btn btn-outline-secondary" @onclick="ClearFilters">Clear Filters</button>
+            <div class="filter-summary">
+                Found <strong>@totalEntries</strong> entries
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading & Empty State -->
+    @if (isLoading)
+    {
+        <div class="loading">
+            <i class="fas fa-spinner fa-spin"></i> Loading entries...
+        </div>
+    }
+    else if (!entries.Any())
+    {
+        <div class="empty-state">
+            <i class="fas fa-book-open fa-3x mb-2"></i>
+            <h3>No entries found</h3>
+            <p>Try adjusting your search or filters.</p>
+            @if (totalEntries == 0 && string.IsNullOrEmpty(searchText) && !filterTagIds.Any() && !filterMoodIds.Any())
+            {
+                <button class="btn btn-primary" @onclick="CreateNewEntry">
+                    Create First Entry
+                </button>
+            }
+        </div>
+    }
+    else
+    {
+        <!-- Entries Grid -->
+        <div class="entries-list">
+            @foreach (var entry in entries)
+            {
+                <div class="entry-card" @onclick="() => EditEntry(entry.EntryId)">
+                    <div class="entry-header">
+                        <div class="entry-date">@FormatDate(entry.EntryDate)</div>
+                        @if (!string.IsNullOrEmpty(entry.Title))
+                        {
+                            <h3 class="entry-title">@entry.Title</h3>
+                        }
+                    </div>
+                    <div class="entry-preview">
+                        @((MarkupString)GetPreview(entry.Content))
+                    </div>
+                    <div class="entry-meta">
+                        <div class="tag-row">
+                            @foreach (var tag in GetEntryTags(entry.EntryId))
+                            {
+                                <span class="tag-chip small" style="@GetTagStyle(tag)">@tag.Name</span>
+                            }
+                        </div>
+                        <div class="mood-row">
+                            @foreach (var mood in GetEntryMoods(entry.EntryId))
+                            {
+                                <span class="mood-chip small">@mood.Name</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="entry-footer">
+                        <div class="footer-left">
+                            <span class="word-count">@entry.WordCount words</span>
+                            <span class="timestamp">Updated @FormatTimestamp(entry.UpdatedAt)</span>
+                        </div>
+                        <button class="btn btn-pdf" @onclick:stopPropagation="true"
+                            @onclick="() => ExportEntryToPdf(entry.EntryId)">
+                            <i class="fas fa-file-pdf"></i> PDF
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination-controls">
+            <button class="btn btn-nav" @onclick="() => ChangePage(currentPage - 1)" disabled="@(!HasPreviousPage)">
+                ← Previous
+            </button>
+            <span class="page-info">
+                Page <strong>@currentPage</strong> of <strong>@(TotalPages == 0 ? 1 : TotalPages)</strong>
+            </span>
+            <button class="btn btn-nav" @onclick="() => ChangePage(currentPage + 1)" disabled="@(!HasNextPage)">
+                Next →
+            </button>
+        </div>
+    }
+</div>
+
+@code {
+    private List<JournalEntry> entries = new();
+    private bool isLoading = true;
+    private int totalEntries = 0;
+
+    private int currentPage = 1;
+    private int pageSize = 10;
+    private int TotalPages => (int)Math.Ceiling((double)totalEntries / pageSize);
+    private bool HasPreviousPage => currentPage > 1;
+    private bool HasNextPage => currentPage < TotalPages;
+
+    private List<Category> categories = new();
+    private List<Tag> availableTags = new();
+    private List<Mood> availableMoods = new();
+
+    private HashSet<int> filterTagIds = new();
+    private HashSet<int> filterMoodIds = new();
+    private string searchText = string.Empty;
+
+    private string? FilterCategoryId { get; set; }
+    private DateTime? StartDate { get; set; }
+    private DateTime? EndDate { get; set; }
+
+    private Dictionary<int, List<Tag>> entryTags = new();
+    private Dictionary<int, List<Mood>> entryMoods = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!AuthService.IsAuthenticated)
+        {
+            Navigation.NavigateTo("/login");
+            return;
+        }
+
+        categories = await JournalService.GetCategoriesAsync();
+        var tagsResult = await TagService.GetUserTagsAsync();
+        availableTags = tagsResult.Success ? tagsResult.Tags ?? new() : new();
+        var moodsResult = await MoodService.GetAllMoodsAsync();
+        availableMoods = moodsResult.Success ? moodsResult.Moods ?? new() : new();
+
+        await LoadEntries();
+    }
+
+    private async Task LoadEntries()
+    {
+        isLoading = true;
+        int? catId = !string.IsNullOrEmpty(FilterCategoryId) && int.TryParse(FilterCategoryId, out int cid) ? cid : null;
+
+        var result = await JournalService.SearchEntriesAsync(
+        searchText,
+        filterTagIds.Any() ? filterTagIds.ToList() : null,
+        filterMoodIds.Any() ? filterMoodIds.ToList() : null,
+        catId,
+        StartDate,
+        EndDate,
+        currentPage,
+        pageSize
+        );
+
+        entries = result.Entries;
+        totalEntries = result.TotalCount;
+
+        await LoadEntryAssociations();
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ChangePage(int newPage)
+    {
+        if (newPage < 1 || (newPage > TotalPages && TotalPages > 0))
+            return;
+
+        currentPage = newPage;
+        await LoadEntries();
+    }
+    private async Task LoadEntryAssociations()
+    {
+        entryTags.Clear();
+        entryMoods.Clear();
+
+        foreach (var entry in entries)
+        {
+            var tagsResult = await TagService.GetEntryTagsAsync(entry.EntryId);
+            entryTags[entry.EntryId] = tagsResult.Success && tagsResult.Tags != null ? tagsResult.Tags : new List<Tag>();
+
+            var moodsResult = await MoodService.GetEntryMoodsAsync(entry.EntryId);
+            entryMoods[entry.EntryId] = moodsResult.Success && moodsResult.EntryMoods != null
+            ? moodsResult.EntryMoods.Select(em => availableMoods.FirstOrDefault(m => m.MoodId == em.MoodId))
+            .Where(m => m != null).Cast<Mood>().ToList()
+            : new List<Mood>();
+        }
+    }
+
+    private void CreateNewEntry() => Navigation.NavigateTo("/today");
+    private void EditEntry(int entryId) => Navigation.NavigateTo($"/journal/edit/{entryId}");
+    private void ExportEntryToPdf(int entryId) => Navigation.NavigateTo($"/export/print?entryId={entryId}");
+
+    private void GoToPrintView()
+    {
+        var query = new List<string>();
+        if (StartDate.HasValue) query.Add($"startDate={StartDate.Value:yyyy-MM-dd}");
+        if (EndDate.HasValue) query.Add($"endDate={EndDate.Value:yyyy-MM-dd}");
+        var queryString = query.Any() ? "?" + string.Join("&", query) : "";
+        Navigation.NavigateTo($"/export/print{queryString}");
+    }
+
+    private async Task ToggleFilterTag(int tagId)
+    {
+        if (!filterTagIds.Add(tagId)) filterTagIds.Remove(tagId);
+        await ApplyFilters();
+    }
+
+    private async Task ToggleFilterMood(int moodId)
+    {
+        if (!filterMoodIds.Add(moodId)) filterMoodIds.Remove(moodId);
+        await ApplyFilters();
+    }
+
+    private async Task ApplyFilters() { currentPage = 1; await LoadEntries(); }
+    private async Task ClearFilters()
+    {
+        searchText = string.Empty;
+        FilterCategoryId = string.Empty;
+        StartDate = null;
+        EndDate = null;
+        filterTagIds.Clear();
+        filterMoodIds.Clear();
+        await ApplyFilters();
+    }
+
+    private string FormatDate(string dateStr)
+    {
+        if (DateTime.TryParse(dateStr, out var date))
+        {
+            var today = DateTime.Now.Date;
+            if (date.Date == today) return "Today";
+            if (date.Date == today.AddDays(-1)) return "Yesterday";
+            return date.ToString("MMMM d, yyyy");
+        }
+        return dateStr;
+    }
+
+    private string FormatTimestamp(DateTime timestamp)
+    {
+        var diff = DateTime.Now - timestamp;
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes} mins ago";
+        return timestamp.ToString("MMM d");
+    }
+
+    private string GetPreview(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return "";
+        var html = Markdig.Markdown.ToHtml(content);
+        var plainText = System.Text.RegularExpressions.Regex.Replace(html, "<(?!\\/?(strong|b|em|i)(?=>|\\s.*>))[^>]*>",
+        string.Empty);
+        return plainText.Length > 250 ? plainText.Substring(0, 250) + "..." : plainText;
+    }
+
+    private IEnumerable<Tag> GetEntryTags(int entryId) => entryTags.TryGetValue(entryId, out var t) ? t :
+    Enumerable.Empty<Tag>();
+    private IEnumerable<Mood> GetEntryMoods(int entryId) => entryMoods.TryGetValue(entryId, out var m) ? m :
+    Enumerable.Empty<Mood>();
+    private string GetTagStyle(Tag tag) => $"background-color: {tag.Color ?? "#D4AF37"}; border-color: {tag.Color ??
+    "#D4AF37"};";
+}

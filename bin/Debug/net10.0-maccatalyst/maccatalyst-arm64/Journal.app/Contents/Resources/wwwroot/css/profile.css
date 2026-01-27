@@ -1,0 +1,234 @@
+/* ============================================================
+   Profile Page — Version 2.0: Glass Bento + Neon Glow
+   ============================================================ */
+
+/* Design Tokens */
+:root {
+    --bg-root: #0A0A0B;
+    --bg-glass: rgba(255, 255, 255, 0.06);
+    --border-glass: rgba(255, 255, 255, 0.12);
+    --accent-color: #8B5CF6;
+    --accent-teal: #06B6D4;
+    --text-primary: #F5F5F7;
+    --text-secondary: rgba(245, 245, 247, 0.8);
+    --radius-md: 24px;
+    --transition-premium: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.4);
+    --shadow-lift: 0 20px 60px rgba(139, 92, 246, 0.25);
+    --glow-accent: 0 0 30px rgba(139, 92, 246, 0.35);
+}
+
+/* -------------------
+   Profile Header
+   ------------------- */
+.profile-header {
+    padding: 2rem 1.5rem;
+    border-bottom-left-radius: var(--radius-md);
+    border-bottom-right-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    box-shadow: var(--shadow-lift);
+    transition: var(--transition-premium);
+}
+
+.profile-header:hover {
+    box-shadow: var(--shadow-lift), var(--glow-accent);
+}
+
+.header-content h1 {
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+    font-size: 2rem;
+    color: var(--text-primary);
+    letter-spacing: -0.05em;
+}
+
+.header-content p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+/* Avatar */
+.profile-avatar img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--accent-color);
+    box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+}
+
+/* -------------------
+   Profile Content
+   ------------------- */
+.profile-content {
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Glass Cards */
+.card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    transition: var(--transition-premium);
+    box-shadow: var(--shadow-soft);
+}
+
+.card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lift), var(--glow-accent);
+}
+
+/* Card Header */
+.card-header {
+    background: rgba(255, 255, 255, 0.04);
+    padding: 1rem 1.2rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border-glass);
+    color: var(--text-primary);
+}
+
+/* Card Body */
+.card-body {
+    padding: 1.2rem 1.5rem;
+    color: var(--text-secondary);
+}
+
+/* Info & Stats Grid */
+.info-grid,
+.stats-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+/* Info Items */
+.info-item .info-label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.info-item .info-value {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-top: 0.3rem;
+    color: var(--text-primary);
+}
+
+/* Stat Cards */
+.stat-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    padding: 1.2rem;
+    text-align: center;
+    transition: var(--transition-premium);
+    box-shadow: var(--shadow-soft);
+}
+
+.stat-card:hover {
+    transform: translateY(-8px);
+    box-shadow: var(--shadow-lift), var(--glow-accent);
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin-top: 0.3rem;
+    color: var(--text-primary);
+}
+
+/* Tips List */
+.tips-list {
+    list-style: disc;
+    padding-left: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.tips-list li::marker {
+    color: var(--accent-color);
+}
+
+/* Buttons */
+.btn-outline-primary {
+    border-radius: var(--radius-md);
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid var(--accent-color);
+    background: transparent;
+    color: var(--accent-color);
+    transition: var(--transition-premium);
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(90deg, var(--accent-color), var(--accent-teal));
+    color: var(--text-primary);
+    box-shadow: 0 5px 20px rgba(139, 92, 246, 0.3);
+    transform: translateY(-4px);
+}
+
+/* -------------------
+   Animations
+   ------------------- */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animated {
+    animation-duration: 0.6s;
+    animation-fill-mode: both;
+}
+
+.fadeIn {
+    animation-name: fadeInUp;
+}
+
+/* -------------------
+   Responsive
+   ------------------- */
+@media (max-width: 480px) {
+    .profile-header {
+        padding: 1.5rem 1rem;
+    }
+
+    .header-content h1 {
+        font-size: 1.6rem;
+    }
+
+    .profile-avatar img {
+        width: 70px;
+        height: 70px;
+    }
+
+    .card-header {
+        font-size: 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.3rem;
+    }
+}

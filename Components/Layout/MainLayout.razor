@@ -1,76 +1,63 @@
-﻿@using MudBlazor
-@using MudBlazor.Components
-@namespace Journal.Components.Layout
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 
-<PinOverlay LockedChanged="OnLockedChanged" />
-@using Journal.Components.Shared
+@using global::Journal.Services
+@using global::Journal.Models
+@inject SettingsService SettingsService
+@inject IJSRuntime JSRuntime
 
-@code {
-    private Task OnLockedChanged(bool locked) => Task.CompletedTask;
-}
+<div class="layout">
+    <!-- FIXED SIDEBAR - ALWAYS VISIBLE (280px) -->
+    <div class="sidebar fixed-sidebar">
+        <div class="sidebar-header">
+            <img src="images/logo.png" alt="Logo" class="logo" />
+        </div>
+        <NavMenu />
+    </div>
 
+    <!-- Main content - AUTOMATICALLY PUSHED RIGHT -->
+    <div class="main-content">
+        <!-- Top row - BELOW SIDEBAR -->
+        <div class="top-row px-4 d-flex justify-content-between align-items-center">
+            <h2>@PageTitle</h2>
+            <div class="top-links">
+                <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+                <button class="theme-btn" @onclick="ToggleTheme">
+                    @(isDarkTheme ? "Dark" : "Light")
+                </button>
+            </div>
+        </div>
 
-<MudThemeProvider @bind-IsDarkMode="_isDark" />
-<MudDialogProvider />
-<MudSnackbarProvider />
-<MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
+        <!-- Body content -->
+        <article class="content px-4">
+            @Body
+        </article>
 
-<MudLayout>
-    <MudAppBar Elevation="1">
-        <MudText Typo="Typo.h6">JOURNAL</MudText>
-        <MudSpacer />
-        <MudIconButton Icon="@(_isDark? Icons.Material.Filled.DarkMode : Icons.Material.Filled.LightMode)"
-            OnClick="ToggleTheme" />
-    </MudAppBar>
-
-    <MudDrawer Open="true" Elevation="1">
-        <MudNavMenu>
-            <MudNavLink Href="/dashboard" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Dashboard">Dashboard
-            </MudNavLink>
-            <MudNavLink Href="/entry" Icon="@Icons.Material.Filled.EditNote">Today Entry</MudNavLink>
-            <MudNavLink Href="/settings" Icon="@Icons.Material.Filled.Settings">Settings</MudNavLink>
-        </MudNavMenu>
-    </MudDrawer>
-
-    <MudMainContent Class="pa-4">
-        <ErrorBoundary>
-            <ChildContent>
-                @Body
-            </ChildContent>
-            <ErrorContent Context="ex">
-                <MudPaper Class="pa-6" Style="background:#b91c1c;color:white;">
-                    <MudText Typo="Typo.h5">🚨 Runtime Error</MudText>
-                    <MudText Typo="Typo.subtitle2">@ex.GetType().Name</MudText>
-
-                    <MudDivider Class="my-2" />
-
-                    <MudText Typo="Typo.body2">
-                        @ex.Message
-                    </MudText>
-
-                    @if (ex.StackTrace != null)
-                    {
-                        <pre style="white-space:pre-wrap;font-size:12px;margin-top:12px;">
-        @ex.StackTrace
-                        </pre>
-                    }
-                </MudPaper>
-            </ErrorContent>
-        </ErrorBoundary>
-
-    </MudMainContent>
-</MudLayout>
-<MudNavLink Href="/timeline" Icon="@Icons.Material.Filled.History">
-    Timeline
-</MudNavLink>
-<MudNavLink Href="/calendar" Icon="@Icons.Material.Filled.CalendarMonth">
-    Calendar
-</MudNavLink>
-
+        <!-- Footer -->
+        <footer class="footer px-4 mt-auto">
+            <p>&copy; 2026 Sachet Journal App. All rights reserved by him.</p>
+        </footer>
+    </div>
+</div>
 
 @code {
-    private bool _isDark = true;
+    // Theme toggle only (removed sidebar toggle)
+    private bool isDarkTheme = false;
 
-    private void ToggleTheme() => _isDark = !_isDark;
+    private async Task ToggleTheme()
+    {
+        isDarkTheme = !isDarkTheme;
+        await JSRuntime.InvokeVoidAsync("setTheme", isDarkTheme ? "dark" : "light");
+    }
+
+    [Parameter] public string PageTitle { get; set; } = "My Journal";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var theme = await SettingsService.GetThemeAsync();
+            isDarkTheme = theme == "dark";
+            await JSRuntime.InvokeVoidAsync("setTheme", theme);
+        }
+    }
 }

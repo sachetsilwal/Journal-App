@@ -1,9 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using MudBlazor.Services;
+﻿using Microsoft.Extensions.Logging;
 using Journal.Data;
 using Journal.Services;
-using Journal.Services.Abstractions;
 
 namespace Journal;
 
@@ -17,35 +14,38 @@ public static class MauiProgram
 			.ConfigureFonts(fonts =>
 			{
 				fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
-				fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
 			});
 
 		builder.Services.AddMauiBlazorWebView();
+
+		// Register database service as singleton (one instance for the app)
+		builder.Services.AddSingleton<JournalDatabase>();
+
+		// Register authentication service as singleton
+		builder.Services.AddSingleton<AuthService>();
+
+		// Register journal service as singleton
+		builder.Services.AddSingleton<JournalService>();
+
+		// Register tag service as singleton
+		builder.Services.AddSingleton<TagService>();
+
+		// Register mood service as singleton
+		builder.Services.AddSingleton<MoodService>();
+
+		// Register streak service as singleton
+		builder.Services.AddSingleton<StreakService>();
+
+		// Register settings service as singleton
+		builder.Services.AddSingleton<SettingsService>();
+
+		// Register export service as singleton
+		builder.Services.AddSingleton<ExportService>();
 
 #if DEBUG
 		builder.Services.AddBlazorWebViewDeveloperTools();
 		builder.Logging.AddDebug();
 #endif
-
-		// MudBlazor
-		builder.Services.AddMudServices();
-
-		// SQLite EF Core (MAUI-safe DB path)
-		var dbPath = DbPath.GetSqlitePath();
-		builder.Services.AddDbContext<JournalDbContext>(options =>
-			options.UseSqlite($"Data Source={dbPath}"));
-
-		// App services (Application layer)
-		builder.Services.AddMudServices();
-		builder.Services.AddScoped<IJournalService, JournalService>();
-		builder.Services.AddSingleton<IPinService, PinService>();
-
-		// Ensure DB exists (simple for coursework; migrations later)
-		using (var scope = builder.Services.BuildServiceProvider().CreateScope())
-		{
-			var db = scope.ServiceProvider.GetRequiredService<JournalDbContext>();
-			db.Database.EnsureCreated();
-		}
 
 		return builder.Build();
 	}

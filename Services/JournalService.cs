@@ -1,117 +1,238 @@
-using Microsoft.EntityFrameworkCore;
 using Journal.Data;
 using Journal.Models;
-using Journal.Services.Abstractions;
 
-namespace Journal.Services;
-
-public class JournalService : IJournalService
+namespace Journal.Services
 {
-    private readonly JournalDbContext _db;
-
-    public JournalService(JournalDbContext db) => _db = db;
-
-    public Task<JournalEntry?> GetEntryAsync(DateOnly date)
-        => _db.JournalEntries.AsNoTracking().FirstOrDefaultAsync(e => e.EntryDate == date);
-
-    public Task<JournalEntry?> GetTodayAsync()
-        => GetEntryAsync(DateOnly.FromDateTime(DateTime.Today));
-
-    public async Task UpsertAsync(JournalEntry entry)
+    // Journal service - handles journal entry operations
+    public class JournalService
     {
-        // System timestamps
-        entry.UpdatedAtUtc = DateTime.UtcNow;
+        private readonly JournalDatabase _database;
+        private readonly AuthService _authService;
 
-        var existing = await _db.JournalEntries.FirstOrDefaultAsync(e => e.EntryDate == entry.EntryDate);
-        if (existing is null)
+        public JournalService(JournalDatabase database, AuthService authService)
         {
-            entry.CreatedAtUtc = DateTime.UtcNow;
-            _db.JournalEntries.Add(entry);
-        }
-        else
-        {
-            existing.Title = entry.Title;
-            existing.ContentMarkdown = entry.ContentMarkdown;
-            existing.PrimaryMood = entry.PrimaryMood;
-            existing.SecondaryMood1 = entry.SecondaryMood1;
-            existing.SecondaryMood2 = entry.SecondaryMood2;
-            existing.Category = entry.Category;
-            existing.TagsCsv = entry.TagsCsv;
-            existing.UpdatedAtUtc = entry.UpdatedAtUtc;
+            _database = database;
+            _authService = authService;
         }
 
-        await _db.SaveChangesAsync();
-    }
-
-    public async Task DeleteAsync(DateOnly date)
-    {
-        var existing = await _db.JournalEntries.FirstOrDefaultAsync(e => e.EntryDate == date);
-        if (existing is null) return;
-        _db.JournalEntries.Remove(existing);
-        await _db.SaveChangesAsync();
-    }
-    public async Task<IReadOnlyList<JournalEntry>> GetMonthAsync(int year, int month)
-    {
-        var start = new DateOnly(year, month, 1);
-        var end = start.AddMonths(1).AddDays(-1);
-
-        return await _db.JournalEntries.AsNoTracking()
-            .Where(e => e.EntryDate >= start && e.EntryDate <= end)
-            .ToListAsync();
-    }
-
-    public async Task<(IReadOnlyList<JournalEntry> Items, int TotalCount)> SearchAsync(
-    string? query,
-    DateOnly? from,
-    DateOnly? to,
-    Mood? mood,
-    string? tag,
-    int page,
-    int pageSize)
-    {
-        var q = _db.JournalEntries.AsNoTracking().AsQueryable();
-
-        if (!string.IsNullOrWhiteSpace(query))
+        // Get current user's ID
+        private int GetCurrentUserId()
         {
-            q = q.Where(e =>
-                e.Title.Contains(query) ||
-                e.ContentMarkdown.Contains(query));
+            return _authService.CurrentUser?.UserId ?? 0;
         }
 
-        if (from.HasValue)
-            q = q.Where(e => e.EntryDate >= from.Value);
+        // ========== JOURNAL ENTRY OPERATIONS ==========
 
-        if (to.HasValue)
-            q = q.Where(e => e.EntryDate <= to.Value);
+        // Get all entries for current user
+        public async Task<List<JournalEntry>> GetAllEntriesAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return new List<JournalEntry>();
 
-        if (mood.HasValue)
-            q = q.Where(e =>
-                e.PrimaryMood == mood ||
-                e.SecondaryMood1 == mood ||
-                e.SecondaryMood2 == mood);
+            return await _database.GetAllEntriesAsync(userId);
 
-        if (!string.IsNullOrWhiteSpace(tag))
-            q = q.Where(e => e.TagsCsv.Contains(tag));
+        }
 
-        var total = await q.CountAsync();
+        // Get paged entries for current user
+        public async Task<List<JournalEntry>> GetEntriesAsync(int skip, int take)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return new List<JournalEntry>();
 
-        var items = await q
-            .OrderByDescending(e => e.EntryDate)
-            .Skip((page - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync();
+            return await _database.GetEntriesAsync(userId, skip, take);
+        }
 
-        return (items, total);
+        // Get entry for today
+        public async Task<JournalEntry?> GetTodayEntryAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return null;
+
+            var today = DateTime.Now.ToString("yyyy-MM-dd");
+            return await _database.GetEntryByDateAsync(userId, today);
+        }
+
+        // Get entry for specific date
+        public async Task<JournalEntry?> GetEntryByDateAsync(DateTime date)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return null;
+
+            var dateStr = date.ToString("yyyy-MM-dd");
+            return await _database.GetEntryByDateAsync(userId, dateStr);
+        }
+
+        // Get entry by ID
+        public async Task<JournalEntry?> GetEntryByIdAsync(int entryId)
+        {
+            return await _database.GetEntryByIdAsync(entryId);
+        }
+
+        // Create or update today's entry
+        public async Task<(bool Success, string Message)> SaveTodayEntryAsync(string title, string content, int? categoryId = null)
+        {
+            try
+            {
+                var userId = GetCurrentUserId();
+                if (userId == 0)
+                    return (false, "User not authenticated");
+
+                if (string.IsNullOrWhiteSpace(content))
+                    return (false, "Content cannot be empty");
+
+                var today = DateTime.Now.ToString("yyyy-MM-dd");
+                var existingEntry = await _database.GetEntryByDateAsync(userId, today);
+
+                if (existingEntry != null)
+                {
+                    // Update existing entry
+                    existingEntry.Title = title;
+                    existingEntry.Content = content;
+                    existingEntry.CategoryId = categoryId;
+
+                    await _database.UpdateEntryAsync(existingEntry);
+                    return (true, "Entry updated successfully!");
+                }
+                else
+                {
+                    // Create new entry
+                    var newEntry = new JournalEntry
+                    {
+                        UserId = userId,
+                        Title = title,
+                        Content = content,
+                        EntryDate = today,
+                        CategoryId = categoryId
+                    };
+
+                    await _database.CreateEntryAsync(newEntry);
+                    return (true, "Entry created successfully!");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error: {ex.Message}");
+            }
+        }
+
+        // Update specific entry
+        public async Task<(bool Success, string Message)> UpdateEntryAsync(int entryId, string title, string content, int? categoryId = null)
+        {
+            try
+            {
+                var entry = await _database.GetEntryByIdAsync(entryId);
+                if (entry == null)
+                    return (false, "Entry not found");
+
+                // Verify ownership
+                if (entry.UserId != GetCurrentUserId())
+                    return (false, "Unauthorized");
+
+                if (string.IsNullOrWhiteSpace(content))
+                    return (false, "Content cannot be empty");
+
+                entry.Title = title;
+                entry.Content = content;
+                entry.CategoryId = categoryId;
+
+                await _database.UpdateEntryAsync(entry);
+                return (true, "Entry updated successfully!");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error: {ex.Message}");
+            }
+        }
+
+        // Delete entry
+        public async Task<(bool Success, string Message)> DeleteEntryAsync(int entryId)
+        {
+            try
+            {
+                var entry = await _database.GetEntryByIdAsync(entryId);
+                if (entry == null)
+                    return (false, "Entry not found");
+
+                // Verify ownership
+                if (entry.UserId != GetCurrentUserId())
+                    return (false, "Unauthorized");
+
+                await _database.DeleteEntryAsync(entryId);
+                return (true, "Entry deleted successfully!");
+            }
+            catch (Exception ex)
+            {
+                return (false, $"Error: {ex.Message}");
+            }
+        }
+
+        // Get entries for a specific month (for calendar view)
+        public async Task<List<JournalEntry>> GetEntriesByMonthAsync(int year, int month)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return new List<JournalEntry>();
+
+            return await _database.GetEntriesByMonthAsync(userId, year, month);
+        }
+
+        // Get total entry count
+        public async Task<int> GetEntryCountAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return 0;
+
+            return await _database.GetEntryCountAsync(userId);
+        }
+
+        // Seed demo data for the current user when their journal is empty
+        public async Task<(bool Success, string Message)> SeedSampleDataForCurrentUserAsync()
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return (false, "User not authenticated");
+
+            var result = await _database.SeedSampleDataForUserAsync(userId);
+            return (result.Seeded, result.Message);
+        }
+
+        // Search entries by keyword and filters
+        public async Task<(List<JournalEntry> Entries, int TotalCount)> SearchEntriesAsync(
+            string? searchText = null,
+            List<int>? tagIds = null,
+            List<int>? moodIds = null,
+            int? categoryId = null,
+            DateTime? startDate = null,
+            DateTime? endDate = null,
+            int page = 1,
+            int pageSize = 10)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == 0)
+                return (new List<JournalEntry>(), 0);
+
+            var startStr = startDate?.ToString("yyyy-MM-dd");
+            var endStr = endDate?.ToString("yyyy-MM-dd");
+            var skip = (page - 1) * pageSize;
+
+            var entries = await _database.SearchEntriesAsync(
+                userId, searchText, tagIds, moodIds, categoryId, startStr, endStr, skip, pageSize);
+
+            var count = await _database.CountEntriesAsync(
+                userId, searchText, tagIds, moodIds, categoryId, startStr, endStr);
+
+            return (entries, count);
+        }
+
+        // Get all categories
+        public async Task<List<Category>> GetCategoriesAsync()
+        {
+            return await _database.GetAllCategoriesAsync();
+        }
     }
-
-    public async Task<IReadOnlyList<JournalEntry>> GetRangeAsync(DateOnly from, DateOnly to)
-    {
-        return await _db.JournalEntries.AsNoTracking()
-            .Where(e => e.EntryDate >= from && e.EntryDate <= to)
-            .OrderByDescending(e => e.EntryDate)
-            .ToListAsync();
-    }
-
-
 }
-
