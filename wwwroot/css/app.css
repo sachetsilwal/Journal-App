@@ -2,26 +2,41 @@
 /* ============================================== */
 
 :root {
-    /* Colors */
+    /* Theme Agnostic Colors */
     --primary-color: #3b82f6;
     --accent-color: #8b5cf6;
     --success-color: #10b981;
     --warning-color: #f59e0b;
     --danger-color: #ef4444;
 
-    /* Sidebar */
+    /* Light Theme Variables */
+    --bg-app: #f1f5f9;
+    --bg-surface: #ffffff;
+    --bg-sidebar: #0f172a;
+    --bg-header: rgba(255, 255, 255, 0.85);
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-secondary: #475569;
+    --text-on-sidebar: #f8fafc;
+    --text-muted-on-sidebar: rgba(248, 250, 252, 0.7);
+    --border-main: #e2e8f0;
+    --border-on-sidebar: rgba(255, 255, 255, 0.08);
+
+    /* Layout */
     --sidebar-width: 280px;
     --sidebar-mobile-width: 260px;
     --sidebar-top-height: 80px;
-    --bg-glass: rgba(15, 15, 35, 0.98);
-    --bg-glass-hover: rgba(26, 26, 46, 0.98);
-    --border-glass: rgba(255, 255, 255, 0.1);
-    --text-primary: rgba(255, 255, 255, 0.95);
-    --text-secondary: rgba(255, 255, 255, 0.75);
+}
 
-    /* Shadows */
-    --shadow-glass: 4px 0 32px rgba(0, 0, 0, 0.3);
-    --shadow-card: 0 10px 40px rgba(0, 0, 0, 0.12);
+[data-theme='dark'] {
+    --bg-app: #030712;
+    --bg-surface: #0f172a;
+    --bg-sidebar: #020617;
+    --bg-header: rgba(15, 23, 42, 0.85);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-secondary: #cbd5e1;
+    --border-main: #1e293b;
 }
 
 /* FIXED SIDEBAR TOP BAR */
@@ -32,11 +47,11 @@
     width: var(--sidebar-width) !important;
     height: var(--sidebar-top-height) !important;
     z-index: 1000 !important;
-    background: linear-gradient(135deg, var(--bg-glass), var(--bg-glass-hover)) !important;
+    background: var(--bg-sidebar) !important;
     backdrop-filter: blur(20px) !important;
-    border-right: 1px solid var(--border-glass) !important;
-    border-bottom: 1px solid var(--border-glass) !important;
-    box-shadow: var(--shadow-glass) !important;
+    border-right: 1px solid var(--border-on-sidebar) !important;
+    border-bottom: 1px solid var(--border-on-sidebar) !important;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3) !important;
     padding: 1rem 1.5rem !important;
 }
 
@@ -71,10 +86,10 @@
     top: var(--sidebar-top-height) !important;
     bottom: 0 !important;
     width: var(--sidebar-width) !important;
-    background: linear-gradient(180deg, var(--bg-glass), var(--bg-glass-hover)) !important;
+    background: var(--bg-sidebar) !important;
     backdrop-filter: blur(30px) !important;
-    border-right: 1px solid var(--border-glass) !important;
-    box-shadow: var(--shadow-glass) !important;
+    border-right: 1px solid var(--border-on-sidebar) !important;
+    box-shadow: 4px 0 32px rgba(0, 0, 0, 0.3) !important;
     overflow-y: auto !important;
     z-index: 999 !important;
     scrollbar-width: thin !important;
@@ -141,7 +156,7 @@ nav.flex-column {
 
 .nav-link:hover {
     color: white !important;
-    background: var(--bg-glass-hover) !important;
+    background: rgba(255, 255, 255, 0.1) !important;
     border-color: rgba(59, 130, 246, 0.4) !important;
     transform: translateX(6px) !important;
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25) !important;
@@ -218,17 +233,7 @@ nav.flex-column {
 
 /* TOP CONTENT BAR (Page title area) */
 .top-row:not(.navbar) {
-    background: rgba(118, 21, 187, 0.95) !important;
-    backdrop-filter: blur(20px) !important;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-    padding: 1.5rem 2rem !important;
-    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08) !important;
-    position: fixed !important;
-    top: 0 !important;
-    left: 0;
-    z-index: 1100 !important;
-    margin-left: 0 !important;
-    width: 100% !important;
+    color: var(--text-main) !important;
 }
 
 /* MOBILE TOP BAR */

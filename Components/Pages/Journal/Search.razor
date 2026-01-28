@@ -47,14 +47,16 @@
 
     private async Task HandleSearch()
     {
-        if (string.IsNullOrWhiteSpace(searchKeyword))
-        {
-            searchResults.Clear();
-            filteredResults.Clear();
-            return;
-        }
+        // Allow searching with empty keyword if filters are set, or vice versa
+        var result = await JournalService.SearchEntriesAsync(
+            searchText: string.IsNullOrWhiteSpace(searchKeyword) ? null : searchKeyword,
+            tagIds: selectedTagId.HasValue ? new List<int> { selectedTagId.Value } : null,
+            startDate: startDate,
+            endDate: endDate,
+            page: 1,
+            pageSize: 50 // Increase limit for search results
+        );
 
-        var result = await JournalService.SearchEntriesAsync(searchKeyword);
         searchResults = result.Entries;
         
         // Load metadata for results
@@ -127,14 +129,15 @@
         };
     }
 
-    private void ClearFilters()
+    private async Task ClearFilters()
     {
+        searchKeyword = string.Empty;
         selectedTagId = null;
         selectedMoodId = null;
         startDate = null;
         endDate = null;
         sortBy = "date-desc";
-        ApplyFilters();
+        await HandleSearch();
     }
 
     private void ToggleFilters()
@@ -193,8 +196,8 @@
                 class="search-input" 
                 placeholder="Search in titles and content..."
                 @bind="searchKeyword"
-                @bind:event="oninput"
                 @onkeyup="@(async (e) => { if (e.Key == "Enter") await HandleSearch(); })" />
+            <button class="search-button" @onclick="HandleSearch">Search</button>
         </div>
 
         <!-- Filters -->
@@ -227,14 +230,15 @@
                     </div>
 
                     <div class="filter-actions">
-                        <button class="btn btn-clear" @onclick="ClearFilters">Clear Filters</button>
+                        <button class="btn btn-clear" @onclick="ClearFilters">Clear & Reset</button>
+                        <button class="btn btn-apply" @onclick="HandleSearch">Apply Filters</button>
                     </div>
                 </div>
             }
         </div>
 
         <!-- Results -->
-        @if (!string.IsNullOrWhiteSpace(searchKeyword))
+        @if (searchResults.Any() || !string.IsNullOrWhiteSpace(searchKeyword) || selectedTagId.HasValue || startDate.HasValue || endDate.HasValue)
         {
             <div class="results-header">
                 <div class="results-count">

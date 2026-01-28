@@ -1,140 +1,156 @@
-/* ============================================================
-   Signup Page — Version 2.0: Glass Bento + Neon Glow
-   ============================================================ */
-
-/* Root Design Tokens */
+/* =====================
+   DESIGN TOKENS - THEME AWARE
+   ===================== */
 :root {
-    --bg-root: #0A0A0B;
-    --bg-glass: rgba(255, 255, 255, 0.06);
-    --border-glass: rgba(255, 255, 255, 0.12);
-    --accent-color: #8B5CF6;
-    --accent-teal: #06B6D4;
-    --text-primary: #F5F5F7;
-    --text-secondary: rgba(245, 245, 247, 0.8);
-    --radius-md: 24px;
-    --transition-premium: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    --shadow-soft: 0 8px 30px rgba(0, 0, 0, 0.4);
-    --shadow-lift: 0 20px 60px rgba(139, 92, 246, 0.25);
-    --glow-accent: 0 0 30px rgba(139, 92, 246, 0.35);
+    --signup-bg: var(--bg-app);
+    --signup-card-bg: var(--bg-surface);
+    --signup-border: var(--border-main);
+    --signup-text: var(--text-main);
+    --signup-text-muted: var(--text-muted);
 }
 
-/* -------------------
-   Signup Page Layout
-   ------------------- */
+/* =====================
+   FULLSCREEN SIGNUP PAGE
+   ===================== */
 .signup-page {
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background: linear-gradient(135deg, #6a11cb, #2575fc);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: calc(100vh - 120px);
+    background: var(--signup-bg);
+    padding: 2rem;
+    transition: background 0.5s ease;
 }
 
-/* Glass Card */
+/* =====================
+   GLASS SIGNUP CARD
+   ===================== */
 .signup-card {
-    background: var(--bg-glass);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border-glass);
-    border-radius: var(--radius-md);
-    padding: 2.5rem 3rem;
-    max-width: 450px;
+    background: var(--signup-card-bg);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 24px;
+    padding: 3.5rem 3rem;
+    max-width: 480px;
     width: 100%;
-    box-shadow: var(--shadow-soft);
-    transition: var(--transition-premium);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--signup-border);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .signup-card:hover {
-    transform: translateY(-8px);
-    box-shadow: var(--shadow-lift), var(--glow-accent);
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.15);
+    transform: translateY(-5px);
 }
 
-/* Logo */
+/* =====================
+   LOGO & HEADER
+   ===================== */
 .signup-logo {
-    height: 60px;
-    margin-bottom: 1rem;
+    height: 70px;
+    width: auto;
+    margin: 0 auto 2.5rem;
+    display: block;
+    filter: drop-shadow(0 4px 10px rgba(59, 130, 246, 0.2));
 }
 
-/* Header */
 .signup-header h2 {
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-    font-size: 1.8rem;
-    color: var(--text-primary);
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--signup-text);
+    margin: 0 0 0.5rem 0;
+    text-align: center;
+    letter-spacing: -0.05em;
 }
 
 .signup-header .subtitle {
-    color: var(--text-secondary);
+    color: var(--signup-text-muted);
+    font-size: 1.1rem;
+    margin-bottom: 2.5rem;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* =====================
+   FORM INPUTS
+   ===================== */
+.form-group label {
+    display: block;
+    margin-bottom: 0.6rem;
+    font-weight: 600;
+    color: var(--signup-text);
+    font-size: 0.95rem;
+    margin-left: 4px;
+}
+
+.form-control-lg {
+    width: 100%;
+    padding: 1.1rem 1.4rem;
+    font-size: 1rem;
+    border-radius: 16px;
+    border: 2px solid var(--signup-border);
+    background: rgba(0, 0, 0, 0.02);
+    color: var(--signup-text);
+    transition: all 0.3s ease;
+    font-weight: 500;
     margin-bottom: 1.5rem;
 }
 
-/* Form Controls */
-.form-control-lg {
-    padding: 0.8rem 1rem;
-    font-size: 1rem;
-    border-radius: 12px;
-    transition: all 0.3s;
-    border: 1px solid var(--border-glass);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-primary);
+[data-theme='dark'] .form-control-lg {
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .form-control-lg:focus {
-    box-shadow: 0 0 0 0.2rem rgba(139, 92, 246, 0.4);
-    border-color: var(--accent-color);
-    background: rgba(255, 255, 255, 0.08);
-    color: var(--text-primary);
+    outline: none;
+    border-color: var(--primary-color);
+    background: var(--signup-card-bg);
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
 }
 
-/* Primary Button */
+/* =====================
+   PREMIUM BUTTON
+   ===================== */
 .btn-primary {
-    background: linear-gradient(90deg, var(--accent-color), var(--accent-teal));
+    width: 100%;
+    padding: 1.2rem;
+    font-weight: 700;
+    font-size: 1.1rem;
     border: none;
-    border-radius: var(--radius-md);
-    font-weight: 600;
-    color: var(--text-primary);
-    transition: var(--transition-premium);
+    border-radius: 16px;
+    cursor: pointer;
+    text-align: center;
+    color: white;
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .btn-primary:hover {
-    background: linear-gradient(90deg, #7C3AED, #06B6D4);
-    box-shadow: 0 5px 20px rgba(139, 92, 246, 0.3);
-    transform: translateY(-4px);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
 }
 
-/* Login Link */
+/* =====================
+   LOGIN LINK
+   ===================== */
+.login-link {
+    text-align: center;
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--signup-border);
+    color: var(--signup-text-muted);
+}
+
 .login-link a {
-    color: var(--accent-color);
-    font-weight: 500;
+    color: var(--primary-color);
+    font-weight: 700;
     text-decoration: none;
+    transition: all 0.3s ease;
 }
 
 .login-link a:hover {
+    color: var(--accent-color);
     text-decoration: underline;
-}
-
-/* -------------------
-   Animations
-   ------------------- */
-.animated {
-    animation-duration: 0.6s;
-    animation-fill-mode: both;
-}
-
-.fadeIn {
-    animation-name: fadeInUp;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 /* -------------------

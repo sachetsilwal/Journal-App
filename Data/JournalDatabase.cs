@@ -23,6 +23,7 @@ namespace Journal.Data
 
             // Get the path to store the database
             var dbPath = Path.Combine(FileSystem.AppDataDirectory, "journals.db3");
+            Console.WriteLine($"DB_PATH: {dbPath}");
 
             // Create connection to SQLite database
             _database = new SQLiteAsyncConnection(dbPath);

@@ -21,8 +21,8 @@
             <h2>@PageTitle</h2>
             <div class="top-links">
                 <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
-                <button class="theme-btn" @onclick="ToggleTheme">
-                    
+                <button class="theme-btn" @onclick="ToggleTheme" title="Toggle Dark/Light Mode">
+                    @((isDarkTheme) ? "☀️ Light" : "🌙 Dark")
                 </button>
             </div>
         </div>
@@ -46,10 +46,12 @@
     private async Task ToggleTheme()
     {
         isDarkTheme = !isDarkTheme;
-        await JSRuntime.InvokeVoidAsync("setTheme", isDarkTheme ? "dark" : "light");
+        var theme = isDarkTheme ? "dark" : "light";
+        await SettingsService.UpdateThemeAsync(theme);
+        await JSRuntime.InvokeVoidAsync("setTheme", theme);
     }
 
-    [Parameter] public string PageTitle { get; set; } = "My Journal";
+    [Parameter] public string PageTitle { get; set; } = "Journal";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -58,6 +60,7 @@
             var theme = await SettingsService.GetThemeAsync();
             isDarkTheme = theme == "dark";
             await JSRuntime.InvokeVoidAsync("setTheme", theme);
+            StateHasChanged(); // Trigger re-render to update the button icon
         }
     }
 }

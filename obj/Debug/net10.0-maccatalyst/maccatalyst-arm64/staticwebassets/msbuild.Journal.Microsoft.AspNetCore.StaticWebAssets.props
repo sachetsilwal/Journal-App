@@ -52,12 +52,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>9kvzsqwr29</Fingerprint>
-      <Integrity>d3H7qqM6x/mhJe77OlCeqzp+L0DigQP0/zGas6kUm5o=</Integrity>
+      <Fingerprint>yv3slr0wb3</Fingerprint>
+      <Integrity>roMcFHEHPuNtXt+d5Henlllw4i62XFH+ww1nrX2DLUs=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>7905</FileLength>
-      <LastWriteTime>Wed, 28 Jan 2026 04:41:13 GMT</LastWriteTime>
+      <FileLength>7809</FileLength>
+      <LastWriteTime>Fri, 30 Jan 2026 02:06:43 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\app.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\bootstrap\bootstrap.min.css'))">
@@ -112,12 +112,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>u863jvfp2h</Fingerprint>
-      <Integrity>XkF/DWtJ0BZcapwZqcS8ZAhV3lwfCmRcv2gxAj097jE=</Integrity>
+      <Fingerprint>wup3v4t2qn</Fingerprint>
+      <Integrity>qARfxHw20nAIdS2ygNctzrdllnodYXRwpQQhEbIUwSE=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>9388</FileLength>
-      <LastWriteTime>Wed, 28 Jan 2026 01:29:28 GMT</LastWriteTime>
+      <FileLength>7351</FileLength>
+      <LastWriteTime>Fri, 30 Jan 2026 02:11:19 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\calendar.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\dashboard.css'))">
@@ -212,12 +212,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>if16issg4i</Fingerprint>
-      <Integrity>vk7xmZCwxe9Apa67QLig1S9LDSPnEGEscql8+wq0i8s=</Integrity>
+      <Fingerprint>yow2307kt4</Fingerprint>
+      <Integrity>AmWy5F1bm8NNXb1X7DuzZqCC8gHEZdy4hZ+Z7/Tr7DY=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>4265</FileLength>
-      <LastWriteTime>Tue, 27 Jan 2026 20:13:00 GMT</LastWriteTime>
+      <FileLength>4541</FileLength>
+      <LastWriteTime>Fri, 30 Jan 2026 01:57:45 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\login.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\profile.css'))">
@@ -232,12 +232,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>mjkb7z9qkk</Fingerprint>
-      <Integrity>wh+eTEcXpltq+zhUjrkUfhROUqS7zOQJALSOqNPTGG8=</Integrity>
+      <Fingerprint>mewwx0ytz2</Fingerprint>
+      <Integrity>Do1tVeZqmwFg6HuuVk6qKFUddwL5Kwu9wbTMa8J+Wtg=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>5068</FileLength>
-      <LastWriteTime>Tue, 27 Jan 2026 15:48:31 GMT</LastWriteTime>
+      <FileLength>5400</FileLength>
+      <LastWriteTime>Fri, 30 Jan 2026 01:56:45 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\profile.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\search.css'))">
@@ -292,12 +292,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>eftrltbiy1</Fingerprint>
-      <Integrity>RjkhKIe1j/GAGiqAv7BGquWhfNgtf8+NTtuVbSJkVMs=</Integrity>
+      <Fingerprint>9rvvige9zy</Fingerprint>
+      <Integrity>hWT8MAncoFgQckgL5q9KzjbNS+uSO6OZgfN/Xtz4AM4=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>3615</FileLength>
-      <LastWriteTime>Tue, 27 Jan 2026 15:48:46 GMT</LastWriteTime>
+      <FileLength>3948</FileLength>
+      <LastWriteTime>Fri, 30 Jan 2026 01:57:48 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\signup.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\tags.css'))">
@@ -412,12 +412,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ApplicationBundle</AssetTraitValue>
-      <Fingerprint>dlwrgn3nao</Fingerprint>
-      <Integrity>wZnRk4Agu3NP1k8di8raP/8KOFBM5GhIlkNx8epPjzs=</Integrity>
+      <Fingerprint>b19p5v76y8</Fingerprint>
+      <Integrity>/+qMNOH35agJFC7JoBPO6+V8OcDczxRwS8mtpeY3c5s=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>7351</FileLength>
-      <LastWriteTime>Wed, 28 Jan 2026 04:41:19 GMT</LastWriteTime>
+      <FileLength>7488</FileLength>
+      <LastWriteTime>Fri, 30 Jan 2026 02:27:57 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Journal.styles.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\editor.js'))">
