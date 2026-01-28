@@ -1129,6 +1129,12 @@
           }
         }
       },
+      "Microsoft.EntityFrameworkCore.Tools/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Design": "10.0.1"
+        }
+      },
       "Microsoft.Extensions.Caching.Abstractions/10.0.1": {
         "type": "package",
         "dependencies": {
@@ -3702,6 +3708,12 @@
           "lib/net10.0/Microsoft.EntityFrameworkCore.Sqlite.dll": {
             "related": ".xml"
           }
+        }
+      },
+      "Microsoft.EntityFrameworkCore.Tools/10.0.1": {
+        "type": "package",
+        "dependencies": {
+          "Microsoft.EntityFrameworkCore.Design": "10.0.1"
         }
       },
       "Microsoft.Extensions.Caching.Abstractions/10.0.1": {
@@ -6562,6 +6574,31 @@
         "microsoft.entityframeworkcore.sqlite.core.nuspec"
       ]
     },
+    "Microsoft.EntityFrameworkCore.Tools/10.0.1": {
+      "sha512": "9vVI/GEf7C/URRBATChRxcG+YgYC0QGnIC+kkvqFWPAGA6mU30PTQABTlm4yICpU+rVgmwDulRKjz2mcKgP92g==",
+      "type": "package",
+      "path": "microsoft.entityframeworkcore.tools/10.0.1",
+      "hasTools": true,
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "Icon.png",
+        "docs/PACKAGE.md",
+        "microsoft.entityframeworkcore.tools.10.0.1.nupkg.sha512",
+        "microsoft.entityframeworkcore.tools.nuspec",
+        "tools/EntityFrameworkCore.PS2.psd1",
+        "tools/EntityFrameworkCore.PS2.psm1",
+        "tools/EntityFrameworkCore.psd1",
+        "tools/EntityFrameworkCore.psm1",
+        "tools/about_EntityFrameworkCore.help.txt",
+        "tools/init.ps1",
+        "tools/net10.0/any/ef.dll",
+        "tools/net10.0/any/ef.runtimeconfig.json",
+        "tools/net472/any/ef.exe",
+        "tools/net472/win-arm64/ef.exe",
+        "tools/net472/win-x86/ef.exe"
+      ]
+    },
     "Microsoft.Extensions.Caching.Abstractions/10.0.1": {
       "sha512": "Vb1vVAQDxHpXVdL9fpOX2BzeV7bbhzG4pAcIKRauRl0/VfkE8mq0f+fYC+gWICh3dlzTZInJ/cTeBS2MgU/XvQ==",
       "type": "package",
@@ -8949,6 +8986,7 @@
       "Microsoft.EntityFrameworkCore >= 10.0.1",
       "Microsoft.EntityFrameworkCore.Design >= 10.0.1",
       "Microsoft.EntityFrameworkCore.Sqlite >= 10.0.1",
+      "Microsoft.EntityFrameworkCore.Tools >= 10.0.1",
       "Microsoft.Extensions.Logging.Debug >= 10.0.1",
       "Microsoft.Maui.Controls >= 10.0.1",
       "Microsoft.NET.ILLink.Tasks >= 10.0.2",
@@ -9022,6 +9060,12 @@
             "version": "[10.0.1, )"
           },
           "Microsoft.EntityFrameworkCore.Sqlite": {
+            "target": "Package",
+            "version": "[10.0.1, )"
+          },
+          "Microsoft.EntityFrameworkCore.Tools": {
+            "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+            "suppressParent": "All",
             "target": "Package",
             "version": "[10.0.1, )"
           },

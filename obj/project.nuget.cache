@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "Dj259bl0fB0=",
+  "dgSpecHash": "GcnPlsK3Qg0=",
   "success": true,
   "projectFilePath": "/Users/sachetshilwal/Desktop/Journal-App/Journal.csproj",
   "expectedPackageFiles": [
@@ -39,6 +39,7 @@
     "/Users/sachetshilwal/.nuget/packages/microsoft.entityframeworkcore.relational/10.0.1/microsoft.entityframeworkcore.relational.10.0.1.nupkg.sha512",
     "/Users/sachetshilwal/.nuget/packages/microsoft.entityframeworkcore.sqlite/10.0.1/microsoft.entityframeworkcore.sqlite.10.0.1.nupkg.sha512",
     "/Users/sachetshilwal/.nuget/packages/microsoft.entityframeworkcore.sqlite.core/10.0.1/microsoft.entityframeworkcore.sqlite.core.10.0.1.nupkg.sha512",
+    "/Users/sachetshilwal/.nuget/packages/microsoft.entityframeworkcore.tools/10.0.1/microsoft.entityframeworkcore.tools.10.0.1.nupkg.sha512",
     "/Users/sachetshilwal/.nuget/packages/microsoft.extensions.caching.abstractions/10.0.1/microsoft.extensions.caching.abstractions.10.0.1.nupkg.sha512",
     "/Users/sachetshilwal/.nuget/packages/microsoft.extensions.caching.memory/10.0.1/microsoft.extensions.caching.memory.10.0.1.nupkg.sha512",
     "/Users/sachetshilwal/.nuget/packages/microsoft.extensions.configuration/10.0.0/microsoft.extensions.configuration.10.0.0.nupkg.sha512",

@@ -112,12 +112,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>495ydvfgfn</Fingerprint>
-      <Integrity>6LcP40DZZv6GxAGgwXx1qaoA0bMaNV1/vetkC/VYji4=</Integrity>
+      <Fingerprint>u863jvfp2h</Fingerprint>
+      <Integrity>XkF/DWtJ0BZcapwZqcS8ZAhV3lwfCmRcv2gxAj097jE=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <FileLength>9388</FileLength>
-      <LastWriteTime>Wed, 28 Jan 2026 01:25:28 GMT</LastWriteTime>
+      <LastWriteTime>Wed, 28 Jan 2026 01:29:28 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\calendar.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\dashboard.css'))">
@@ -132,12 +132,12 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>mzr8ko9qwo</Fingerprint>
-      <Integrity>Trw/2g4ByP/DMrDURHu6XWJvJQh+O36xTcpI+wmRAMQ=</Integrity>
+      <Fingerprint>ws00fwtp16</Fingerprint>
+      <Integrity>8Py49tNmtlbUN3EyWsEGBdyLAIHtkvE05ZjbXqucvA8=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <FileLength>9245</FileLength>
-      <LastWriteTime>Tue, 27 Jan 2026 20:11:50 GMT</LastWriteTime>
+      <FileLength>5876</FileLength>
+      <LastWriteTime>Wed, 28 Jan 2026 02:17:09 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\dashboard.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\css\edit-entry.css'))">
@@ -417,7 +417,7 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <FileLength>7351</FileLength>
-      <LastWriteTime>Wed, 28 Jan 2026 01:25:59 GMT</LastWriteTime>
+      <LastWriteTime>Wed, 28 Jan 2026 02:44:30 GMT</LastWriteTime>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Journal.styles.css'))</OriginalItemSpec>
     </StaticWebAsset>
     <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\editor.js'))">
