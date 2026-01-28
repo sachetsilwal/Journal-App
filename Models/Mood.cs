@@ -16,6 +16,9 @@ namespace Journal.Models
 
         public int Intensity { get; set; }
 
+        public string Category { get; set; } = string.Empty; // Positive, Neutral, Negative
+
+
         [Ignore]
         public bool IsPrimary { get; set; }
     }
